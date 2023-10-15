@@ -1,0 +1,58 @@
+---
+title: 01-02 Defining Routes
+description: การกำหนด Route
+---
+
+# 01-02 การกำหนด Route (Defining Routes)
+
+> เราแนะนำให้ทำความเข้าใจ ความรู้พื้นฐานเกี่ยวกับ Routing ก่อนที่จะเริ่มบทนี้
+
+บทนี้จะมีเนื้อหาเกี่ยวกับแนวทางการสร้างและจัดการ routes ใน Next.js แอพพลิเคชัน
+
+<hr />
+## การสร้าง Route (Creating Routes)
+
+Next.js ใช้การวางโครงสร้างไฟล์และโฟลเดอร์เป็นตัวกำหนด routes
+
+แต่ละโฟลเดอร์จะแทน route segment หนึ่ง segment ซึ่งทำหน้าที่กำหนดเส้นทางให้กับ URL
+
+ในการสร้าง nested route เราสามารถสร้างโฟลเดอร์ในโฟลเดอร์ได้
+![](/01-01-img/route-segments-to-path-segments.avif)
+ใน Next.js จะใช้ไฟล์พิเศษไฟล์หนึ่ง ชื่อ page.js ทำหน้าที่เก็บโค้ดเพื่อแสดงผลสำหรับแต่ละ route
+![](/01-02-img/defining-routes.avif)
+ตัวอย่าง เช่น URL path `/dashboard/analytics` จะไม่มีการแสดงผลออกมาเพราะว่าไม่มีไฟล์ page.js ในโฟลเดอร์ analytics
+แต่เราสามารถใช้โฟลเดอร์นี้เก็บ components stylesheet images หรือ colocated file ได้
+
+> ข้อควรรู้: นามสกุลของไฟล์พิเศษนี้ สามารถเป็น .js .jsx .tsx อย่างใดอย่างหนึ่งก็ได้
+
+<hr />
+## การสร้าง UI (Creating UI)
+
+ไฟล์พิเศษที่ได้ถูกกำหนดไว้ จะใช้เพื่อสร้าง UI ของแต่ละ route segment ที่ใช้มากที่สุดคือไฟล์ page เพื่อแสดง UI เพื่อแสดง UI ของ route นั้น และไฟล์ layout ที่ใช้แสดง UI ร่วมกันหลายๆ routes
+
+เรามาดูตัวอย่างการสร้างหน้าแรกกัน
+การสร้างหน้าแรกของแอพ เราจะสร้างไฟล์ pages.js ไว้ในไดเรกทอรี app และทำการ export React component ออกมา
+(ในที่นี้จะแสดงเป็น TypeScript)
+
+`app/page.tsx`
+
+```
+export default function Page() {
+    return <h1>Hello Next.js!<h1/>
+}
+```
+
+<hr />
+## Next Steps
+
+ต่อไปเราจะไปเรียนรู้เกี่ยวกับการสร้าง [01-03-Pages-and-Layouts](https://themodcoding.vercel.app/blogs/01-03-Pages-and-Layouts) กัน
+
+<hr />
+แปลและเรียบเรียงโดย ModTdin
+
+Original: [Defining Routes](https://nextjs.org/docs/app/building-your-application/routing/defining-routes)
+
+<hr />
+[01-01-Routing-Fundamentals](https://themodcoding.vercel.app/blogs/01-01-Routing-Fundamentals)
+
+[**Home**](/)

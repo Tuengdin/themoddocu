@@ -1,0 +1,228 @@
+---
+title: 01-03 การสร้าง Pages และ Layouts
+description: การสร้าง Pages และ Layouts ด้วย TypeScript
+---
+
+# 01-03 การสร้าง Pages และ Layouts
+
+> เราแนะนำให้ทำความเข้าใจ ความรู้พื้นฐานเกี่ยวกับ Routing และ การกำหนด Route ก่อนที่จะเริ่มบทนี้
+
+บทนี้จะมีเนื้อหาเกี่ยวกับแนวทางการจัดการไฟล์พิเศษของ Next.js ที่ออกแบบใหม่ให้ง่ายขึ้น ไม่ว่าจะเป็นการสร้าง pages การสร้าง shared layouts และ template
+
+<hr />
+## การสร้าง Pages
+
+Page คือ หน้าแสดง UI เฉพาะของแต่ละ Route เราสามารถสร้าง Page โดย
+export component จากไฟล์ page.js และใช้โฟลเดอร์ที่ไฟล์ page.js อยู่นั้นเป็น
+route ในการเรียกให้ page.js แสดงผล
+
+การสร้างหน้าแรก เราจะสร้างไฟล์ pages.tsx ไว้ในไดเรกทอรี app
+![](/01-03-img/page-special-file.avif)
+จากภาพ เราจะได้ `app/page.js`เป็น UI ของ `/` URL
+(ในตัวอย่างโค้ด เราสามารถใช้ไฟล์ .jsx หรือ .tsx แทน .js ได้)
+
+```
+// โค้ดนี้จะใช้ `app/page.tsx` เป็น UI สำหรับ `/`
+
+export default function Page() {
+    return <h1>Hello Home page!<h1/>
+}
+```
+
+```
+// โค้ดนี้จะใช้ `app/dashboard/page.tsx` เป็น UI สำหรับ `/dashboard`
+
+export default function Page() {
+    return <h1>Hello, Dashboard page!<h1/>
+}
+```
+
+> ข้อควรรู้
+>
+> - Page เป็นส่วนของ leaf ใน route subtree เสมอ
+> - เราสามารถใช้ไฟล์ .js .jsx .tsx สำหรับ Page ได้
+> - หากต้องการแสดงเนื้อหาของ route segment นั้น จะแสดงใน page.js เสมอ หากไม่มี page.js จะไม่มีการแสดงเนื้อหาของ route segment นั้น
+> - ค่าเริ่มต้นของ Page จะตั้งให้เป็น Server Component แต่เราก็สามารถเปลี่ยนให้เป็น Client Component ได้
+> - Page สามารถ fetch data ได้ ซึ่งจะได้กล่าวถึงในหัวข้อ Data Fetching ต่อไป
+
+<hr />
+## Layouts
+
+Layout เป็น UI ที่ใช้ร่วมกันของ page หลายๆ page มักจะใช้ในการทำ
+
+- navigation
+- layouts preserve state
+- remain interactive
+- ไม่มีการ render ซ้ำ
+
+และเราสามารถทำ layout ซ้อนใน layout อื่นได้
+
+เราสามารถกำหนด layout ได้โดย export React Component จากไฟล์ layout.js
+ซึ่ง component จะต้องรับค่า children prop เพื่อให้ child layout(ถ้ามี) หรือ child page ไปใช้งาน
+![](/01-03-img/layout-special-file.avif)
+`app/dashboard/layout.tsx`
+
+```
+export default function DashboardLayout ({
+    children, // willbe a page or nested layout
+}:{
+    children: React.ReactNode
+}){
+    return (
+    <section>
+        {/* Include shared UI here e.g. a header or sidebar */}
+        <nav></nav>
+
+        {children}
+    </section>
+    )
+}
+```
+
+> สิ่งที่ควรรู้
+>
+> - เราจะเรียก layout ชั้นบนสุดว่า Root Layout ซึ่งเป็นข้อกำหนดว่าจะต้องมีไม่มีไม่ได้ เพราะทำหน้าที่เป็น Layout ของทุก page ในแอพพลิเคชัน ใน Root layout นี้จะต้องมี html และ body tag อยู่ในนั้น
+> - เราสามารถกำหนด layout เพิ่มให้กับ route ต่างๆได้ ซึ่งจะใช้ได้กับทุก page ของ segment นั้นๆ
+> - ค่าเริ่มต้น กำหนดให้ Layout ในแต่ละ route สามารถซ้อนกันได้ เราจะเรียก layout ชั้นสูงกว่าว่า parent layout จะครอบ child layout ที่อยู่ลำดับต่ำกว่าได้ โดยใช้ React children prop
+> - เราสามารถสร้าง Route Group เพื่อเป็นทางเลือกเฉพาะสำหรับแต่ละ segment ทั้งในและนอกขอบเขตของ shared layout ได้
+> - ค่าเริ่มต้นของ Layout เป็น Server Component แต่เราก็สามารถตั้งค่าให้เป็น Client Component ได้
+> - Layout สามารถทำการ fetch data ได้ ให้ดูข้อมูลเพิ่มเติมในหัวข้อ Data Fetching
+> - เราไม่สามารถส่งข้อมูลระหว่าง parent layout และ Children ของมันได้ แต่อย่างไรก็ตาม เราสามารถ fetch ข้อมูลเดียวกันใน route นั้นได้มากกว่า 1 ครั้ง และ React สามารถทำการ dedupe the request อัตโนมัติโดยไม่กระทบกับประสิทธิภาพ
+> - Layout จะไม่มีการเข้าไปทำงานกับ route segment ในระดับที่ต่ำกว่ามันได้ หากจะทำให้สามารถเช้าถึงได้ในทุก route เราสามารถทำได้โดยใช้ useSelectedLayoutSegment หรือ ีuseSelectLAyoutSegmants ใน Client Component
+> - เราสามารถใช้ .js .jsx หรือ .tsx กับไฟล์ layout ได้
+> - เราสามารถสร้าง layout.js และ page.js ในโฟลเดอร์เดียวกันได้ ซึ่ง layout นั้นจะทำการครอบ page ไว้
+
+## Root Layout (Required)
+
+Root layout จะถูกกำหนดให้อยู่ในระดับ top level ของไดเรกทอรี app และมีผลต่อทุก route ใน app
+ใน layout นี้ เปิดให้คุณสามารถปรับแต่ง HTML ที่ return มาจาก server ได้
+
+`app/layout.tsx`
+
+```
+export default function RootLayout({
+    children,
+}:{
+    children: React.ReactNode
+}){
+    return (
+        <html lang="en">
+            <body>{children}</body>
+        </html>
+    )
+}
+```
+
+> **สิ่งที่ควรรู้**
+>
+> - ไดเรกทอรี app จะต้องมี root layout
+> - root layout จะต้องกำหนดแท็ก `<html>` และ `<body>` เพราะว่า Next.js ไม่สามารถสร้างเองได้
+> - เราสามารถใช้ `<head>` ของ HTML ในการทำงานกับ built-in SEO support ได้ เช่น การใช้ `<title>`
+> - เราสามารถใช้ route groups ในการสร้าง root layout หลายๆอันได้
+> - root layout มีค่าเริ่มต้นเป็น Server Component และ**ไม่สามารถเปลี่ยน**ให้เป็น Client Component ได้
+
+> การใช้งานร่วมกับไดเรกทอรี pages จะแทน root layout ด้วยไฟล์ \_app.js และ \_document.js
+
+## Nesting Layouts
+
+เราจะทำการกำหนด Layout ใน folder ตัวอย่างเช่น `app/dashboard/layout.js` เพื่อให้มีผลการใช้งานกับ route ที่ต้องการ เช่น `acme.com/dashboard` และทำงานเมื่อ segment นั้นถูกเรียกให้ทำงาน
+ค่าเริ่มต้นของ layout ในโครงสร้างไฟล์จะเป็น nested อยู่แล้ว หมายความว่า มันจะครอบ `child layout` ด้วย `children prop`
+![](/01-03-img/nested-layout.avif)
+`app/dashboard/layout.tsx`
+
+```
+export default function DashboardLayout({
+    children,
+}:{
+    children: React.ReactNode
+}){
+    return <section>{children}</section>
+}
+```
+
+> **สิ่งที่ควรรู้**
+>
+> - เฉพาะ root layout เท่านั้นที่จะมีแท็ก `<html>` และ `<body>` ได้
+
+ถ้าเราต้องการนำ layoutข้างบน 2 อันมารวมกัน ตัว root layout (`app/layout.js`)จะต้องครอบ dashboard layout (`app/dashboard/layout.js`) ไว้ ซึ่งจะครอบ route segment
+ไว้ข้างใน `app/dashboard/*`
+
+ข้างล่างนี้เป็นรูปตัวอย่างการซ้อน layout
+![](/01-03-img/nested-layouts-ui.avif)
+เราสามารถเลือกใช้ Route Groups สำหรับ route segment เพื่อกำหนดการ shared layout ได้
+
+<hr />
+## Templates
+
+Template คล้ายกับ layout ที่ครอบ child layout หรือ page แต่ละอันไว้ แต่สิ่งที่ไม่เหมือนกัน layout คือ การคงอยู่ระหว่าง route และ maintain state
+
+ตัว template จะสร้าง instance ใหม่สำหรับการนำทางให้กับ children แต่ละตัว หมายความว่า เมื่อเราใช้ navigates ระหว่าง routes ที่ใช้ template ร่วมกัน จะมี instance ใหม่ที่ถูก mounted ขึ้นมา DOM element จะถูกสร้างขึ้นมาอีกครั้ง state จะไม่ถูกจองไว้ และ effects จะถูกเชื่อมกันอีกครั้ง
+
+หมายความว่าอาจจะมีบางกรณีที่เราต้องการให้ทำงานเฉพาะ และ template ก็เป็นเครื่องมือที่เหมาะสมมากกว่า layout ตัวอย่างเช่น
+
+- มีการทำงานบน useEffect (เช่น logging page view) และการใช้ useState (เช่น per-page feedback form)
+- เพื่อเปลี่ยนแปลงผลของค่าเริ่มต้นของ framwork ตัวอย่างเช่น Suspense Boundaries ข้างใน Layout เพื่อแสดงเฉพาะ fallback เมื่อมีการโหลด layout ครั้งแรก หรือไม่โหลด เมื่อมีการเปลี่ยน pages ตัวอย่างเช่น fallback จะถูกแสดงในแต่ละการนำทาง
+
+template สามารถตั้งค่าโดย `export React component` จาก template.js และ component จะต้องรับค่าจาก children prop
+![](/01-03-img/template-special-file.avif)
+`app/template.tsx`
+
+```
+export default function Template({ children}:{chlidren:React.ReactNode}){
+    return <div>{children}</div>
+}
+```
+
+ในกรณีของ nesting ไฟล์ template.js จะถูก render ระหว่าง layout กับ children ของมัน ลองดูตัวอย่างของ output:
+`output`
+
+```
+<Layout>
+    {/* Note that the template is given a unique key. */}
+    <Template key={routeParam}>{children}</template>
+</Layout>
+```
+
+<hr />
+
+## Modifying `<head>`
+
+ในไดเรกทอรี app เราสามารถปรับแต่ง `<head>` ซึ่งเป็น HTML element ได้ เช่น การปรับแต่ง `title` และ `meta` โดยการใช้ built-in SEO support
+
+`Metadata` สามารถตั้งค่าโดยการ `export` ตัว `meta object` หรือ ฟังก์ชัน `generateMetadata` ในไฟล์ layout.js หรือ page.js
+
+`app/page.tsx`
+
+```
+import {Metadata} from 'next'
+
+export const metadata: Metadata = {
+    title: 'Next.js',
+}
+
+export default function Page()
+{
+    return '...'
+}
+```
+
+> **สิ่งที่ควรรู้**
+> เราไม่ควรเพิ่มแท็ก `<head>` เข้าไปใน root แบบ manual ขึ้นเอง เช่น `<title>` และ `<meta>` แต่ว่าเราจะใช้ Metadata API ซึ่งจะดำเนินการให้เราอัตโนมัติ เช่น `straming` และ `de-duplication` `<head>` element
+
+หากต้องการรู้เรื่อง metadata เพิ่มเติม ให้ดูในหัวข้อ API Reference
+
+<hr />
+
+## Next Steps
+
+ต่อไปเราจะไปเรียนรู้เกี่ยวกับ [01-04-Linking-and-Navigating](https://themodcoding.vercel.app/blogs/01-04-Linking-and-Navigating) กัน
+
+<hr />
+แปลและเรียบเรียงโดย ModTdin
+
+Original: [Pages and Layouts](https://nextjs.org/docs/app/building-your-application/routing/pages-and-layouts)
+
+<hr />
+[01-02-Defining-Routes](https://themodcoding.vercel.app/blogs/01-02-Defining-Routes)
+
+[**Home**](/)

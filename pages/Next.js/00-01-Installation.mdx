@@ -1,0 +1,65 @@
+---
+title: 00-01 การติดตั้ง Next.js (Installation)
+description: การติดตั้ง Next.js
+---
+
+# 00-01 การติดตั้ง Next.js (Installation)
+
+ความต้องการของระบบ:
+
+- Node.js 16.14 ขึ้นไป
+- macOS หรือ Windows(ที่ติดตั้ง WSL) หรือ Linux
+
+## การติดตั้งแบบอัตโนมัติ
+
+เราแนะนำให้เริ่มต้นแอพใหม่ของ Next.js ด้วย คำสั่ง `create-next-app`
+ซึ่งจะติดตั้งทุกอย่างให้เราโดยอัตโนมัติ เรามาดูตัวอย่างการสร้างโปรเจคกัน
+
+```
+npx create-next-app@latest
+```
+
+ในขั้นตอนการติดตั้งระบบจะถามเราดังนี้
+
+```
+What is your project named? my-app
+Would you like to use TypeScript? No / Yes
+Would you like to use ESLint? No / Yes
+Would you like to use Tailwind CSS? No / Yes
+Would you like to use `src/` directory? No / Yes
+Would you like to use App Router? (recommended) No / Yes
+Would you like to customize the default import alias (@/*)? No / Yes
+What import alias would you like configured? @/*
+
+```
+
+หลังจากตอบคำำถามในขั้นตอนนี้เสร็จแล้ว `create-next-app` จะสร้าง folder เป็นชื่อโปรเจคของเรา และติดตั้งส่วนประกอบต่างๆให้เรา
+
+> **สาระน่ารู้**
+>
+> > ตอนนี้ Next.js มาพร้อมกับ TypeScript ESLint และ Tailwind CSS ซึ่งจะตั้งเป็นค่าเริ่มต้น
+> > เราสามารถเลือกให้มีโฟลเดอร์ src ใน root ของโปรเจคเพื่อแยกโค้ดของเราออกจากไฟล์ที่ตั้งค่าระบบ Next.js
+
+---
+
+## Run the Development Server
+
+1. ใช้คำสั่ง `npm run dev` เพื่อสั่งให้ sever ในส่วนของ development ที่ทำงาน
+2. เข้าไปที่ `http://localhost:3000` เพื่อดูแอพของคุณ
+3. แก้ไขไฟล์ app/layout.tsx หรือ page.tsx แล้ว save เพื่อดูผลการเปลี่ยนแปลงใน browser ของคุณ
+
+## ขั้นต่อไป
+
+เรียนรู้เกี่ยวกับโครงสร้างของไฟล์และโฟลเดอร์ในโปรเจค Next.js ของคุณ
+
+<hr />
+แปลและเรียบเรียงโดย ModTdin
+
+Original: [Installation](https://nextjs.org/docs/getting-started/installation)
+
+<hr />
+[00-00-getting-started](https://themodcoding.vercel.app/blogs/00-00-getting-started)
+
+[**Home**](/)
+
+[00-02-Project-Structure](https://themodcoding.vercel.app/blogs/00-02-Project-Structure)

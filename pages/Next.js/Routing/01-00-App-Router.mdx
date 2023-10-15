@@ -1,0 +1,91 @@
+---
+title: 01-00 App Router
+description: บทนำเข้าสู่ App Router
+---
+
+# 01-00 App Router
+
+App Router ของ Next.js เป็นแนวคิดใหม่ในการสร้างแอพพลิเคชั่นโดยใช้คุณสมบัติล่าสุดของ React
+ถ้าคุณเคยใช้ Next.js มาแล้ว คุณจะพบว่า App Router เป็นการเปลี่ยนแปลงที่เป็นธรรมชาติของ ระบบไฟล์ที่มีอยู่บนพื้นฐาน router ใน Pages Router
+
+สำหรับการสร้างแอพพลิเคชั่นใหม่ๆ ทาง Next.js แนะนำให้ใช้ App Router สำหรับแอพพลิเคชั่นที่เปิดใช้อยู่แล้ว คุณสามารถค่อยๆปรับใช้ App Router เพิ่มเข้าไป เพราะว่า router ทั้งสองแบบสามารถใช้ร่วมกันในแอพพลิเคชั่นเดียวกันได้
+
+<hr />
+
+## คำถามที่พบบ่อย
+
+### เราจะเข้าถึงการ request object ใน layout ได้อย่างไร
+
+โดยปกติเราจะไม่สามารถเข้าถึง raw request object แต่อย่างไรก็ตาม เราสามารถเข้าถึง headers และ cookies ผ่าน function ของ server-only ได้ และเราก็สามารถตั้งค่า cookies ได้
+
+Layout ไม่สามารถเป้นตัว renderer ได้ พวกมันถูก cache และ ใช้ซ้ำโดยไม่จำเป็นต้องมีการคำนวณใหม่ตอนที่มีการเปลี่ยนหน้าเพจ ด้วยการถูกจำกัดจาก layout จากการเข้าถึง raw request นี้ Next.js สามารถป้องกันไม่ให้เกิดการทำงานที่ช้าหรือการใช้โค้ดที่เกินความจำเป็นของ layout ที่ทำให้ประสิทธิภาพลดลง
+
+การออกแบบนี้จะทำการวาง layout เป็นระบบ ดูง่ายในการพัฒนาและการแก้ไขข้อผิดพลาดต่างๆที่เกิดขึ้น เพราะว่ามีรูปแบบที่เป็นระบบเหมือนๆกันในแต่ละหน้า
+
+ในการออกแบบ UI ตัว Parallel Route จะทำให้เราสามารถ render หลายๆหน้าได้พร้อมมกัน และการเข้าถึง route segment ทำได้โดย URL search params
+
+### เราจะเข้าถึงการ URL บน page ได้อย่างไร
+
+์Next.js ตั้งค่าเริ่มต้นของเพจให้เป้น Server Component เราสามารถเข้าถึงผ่าน route segment ผ่าน params prop และ URL search params ผ่าน `searchParams` prop ของแต่ละเพจ
+
+แต่ถ้าเราจะใช้ Client Component เราจะให้ `usePathname` `useSelectedLayoutSegment` และ `useSelectedLayoutSegments` สำหรับ route ที่ซับซ้อน
+
+ในการออกแบบ UI ตัว Parallel Route จะทำให้เราสามารถ render หลายๆหน้าได้พร้อมมกัน และการเข้าถึง route segment ทำได้โดย URL search params
+
+### เราจะ redirect จาก Server Component ได้อย่างไร
+
+เราสามารถใช้ redirect เพื่อเปลี่ยนเส้นทางจากหน้าที่เราอยู่ได้ทั้ง URL แบบ relative หรือ แบบ absolute
+redirect สามารถทำได้ทั้ง temporary(307) redirect หรือ permanentRedirect ซึ่่งเป็น permanent(308) redirect
+ฟังก์ชันเหล่านี้จะถูกใช้เมื่อเป็น streaming UI ซึ่งจะมี meta tag ในการทำ redirect บน client side
+
+### เราจะทำการ authentication บน App Router ได้อย่างไร
+
+นี่คือวิธีการโดยทั่วไปที่จะทำให้เราสามารถทำ authentigation ใน App Router ได้
+
+- NextAuth.js
+- Clerk
+- Auth0
+- Stytch
+- หรือการโดยใช้การ handlin sessions เอง หรือ JWTs
+
+### เราจะ ตั้งค่า cookies ได้อย่างไร
+
+เราสามารถใช้ cookie ใน Server Action หรือ Route Handlers โดยใช้ cookies function
+
+แต่สำหรับ HTTP เราไม่สามารถใช้ cookies หลังจาก streaming ได้ เราไม่สามารถใช้ cookies จากเพจหรือ layout ได้โดยตรง เราจึงต้องใช้ผ่าน Middleware
+
+### เราจะสร้าง multi-tenant apps ได้อย่างไร
+
+ถ้าคุณกำลังหา application เดี่ยวๆจาก Next.js ที่รองรับ multi tenants ได้ ทาง Next.js ก็มีตัวอย่างให้ดู
+
+### เราจะทำงานกับ cache ใน App Router ได้อย่างไร
+
+caching ใน Next.js มีหลายชั้น ดังนั้นจึงหลายแนวทางในการจัดการ ซึ่งเราจะต้องเรียนรู้ต่อไป
+
+### มี Open-source application ที่มีเนื้อหาสำหรับ App Router บ้างไหม
+
+เราสามารถดูได้จาก Next.js Commerce หรือ Platform Starter Kit
+
+## หัวข้อที่เราจะต้องเรียนรู้ในการสร้างแอพพลิเคชันโดย Next.js App router มี 9 หัวข้อ ดังนี้
+
+1. Routing fundamentals
+2. Data Fetching
+3. Rendering
+4. Caching
+5. Styling
+6. Optimizing
+7. Configuring
+8. Deploying
+9. Upgrading
+
+<hr />
+แปลและเรียบเรียงโดย ModTdin
+
+Original: [App Router](https://nextjs.org/docs/app)
+
+<hr />
+[00-02-Project-Structure](https://themodcoding.vercel.app/blogs/00-02-Project-Structure)
+
+[**Home**](/)
+
+[01-01-Routing-Fundamentals](https://themodcoding.vercel.app/blogs/01-01-Routing-Fundamentals)

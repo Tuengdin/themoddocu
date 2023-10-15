@@ -1,0 +1,201 @@
+---
+title: 01-06 Dynamic Routes
+description: การจัดการ Dynamic Routes ใน App Router ของ Next.js
+---
+
+# 01-06 Dynamic Routes
+
+เมื่อเราไม่รู้ว่าชื่อ segment ที่แท้จริง และเราต้องการสร้าง routes จาก dynamic data เราสามารถใช้ dynamic segment ที่จะเติมเข้าไปตอนที่เราทำ request หรือ prerender ขณะ build time ได้
+
+<hr />
+## ข้อกำหนด (Convention)
+
+เราสามารถสร้าง Dynamic Segment ได้โดยการครอบชื่อโฟลเดอร์ด้วยวงเล็บสี่เหลี่ยมในรูปแบบนี้ => [foldername] ตัวอย่าง เช่น [id] หรือ [slug]
+
+Dynamic Segment เป็นการส่งค่า `params` prop ไปให้ฟังก์ชัน `layout` `page` `route` และ `generalMetadata`
+
+<hr />
+## ตัวอย่าง
+
+ตอนนี้เราจะยกตัวอย่างในการใช้ เช่น เราสามารถใส่ dynamic route ให้กับ blog ได้ตามรูปแบบนี้ `app/blog/[slug]/page.js` ในที่นี้ [slug] ทำหน้าที่เป็น Dynamic Segment สำหรับ `blog`
+`app/blog/[slug]/page.tsx`
+
+```
+export default function Page({ params }:{ params:{ slug:string } }){
+  return <div>My Post: {params.slug}</div>
+}
+```
+
+<table>
+  <thead>
+    <tr>
+      <th>Routes</th>
+      <th>Example URL</th>
+      <th>params</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>app/blog/[blog]/page.js</td>
+      <td>/blog/a</td>
+      <td>`{ slug: 'a'}`</td>
+    </tr>
+    <tr>
+      <td>app/blog/[blog]/page.js</td>
+      <td>/blog/b</td>
+      <td>`{ slug: 'b'}`</td>
+    </tr>
+    <tr>
+      <td>app/blog/[blog]/page.js</td>
+      <td>/blog/c</td>
+      <td>`{ slug: 'c'}`</td>
+    </tr>
+  </tbody>
+</table>
+ดูหัวข้อ generateStaticParams() เพื่อเรียนรู้เพิ่มเติมเกี่ยวกับการ สร้าง params ของ segment
+> สิ่งที่ควรรู้
+> Dynamic segment ก็คือ Dynamic Routes ใน pages directory
+<hr />
+## การสร้าง Static Params (Generating Static Params)
+
+ฟังก์ชัน `generateStaticParams` ศามารถใช้ร่วมกับ dynamic routes regments เพื่อสร้าง static generate routes ในขณะ build time แทนการสร้างเมื่อถูก request
+`app/blog/[slug]/page.tsx`
+
+```
+export async function generateStaticParams() {
+  const posts = await fetch('https://.../posts').then((res) => res.json())
+
+  return posts.map((post) => ({
+    slug: post.slug,
+  }))
+}
+```
+
+ประโยชน์ของการใช้ฟังก์ชัน `generateStaticParams` คือ การรับข้อมูลที่ดี ถ้าเนื้อหาถูก fetch โดยการใช้ `genrateStaticParams`ระบบจะจำไว้โดยอัตโนมัติ หมายความว่า `fetch` request ทำหน้าที่เหมือน argument ที่ทำงานข้าม `generateStaticParams` `Layouts และ `Pages` เป็นการสร้างขึ้นมาครั้งเดียวทำให้ลดเวลา build time
+
+(ใช้ migration guide ถ้าคุณต้องการให้ทำงานร่วมกับ `pages directory`)
+
+ดูหัวข้อ `generateStaticParams` server function component สำหรับการใช้ขั้นสูง
+
+<hr />
+## Catch-all segments
+
+Dynamic Segments ยังมีความสามารถที่จะทำการ catch-all ในแต่ละส่วนของ segment โดยเพิ่มจุด 3 จุด (ellipsis) เข้าไปในวงเล็บตามรูปแบบนี้ => [...folderName]
+
+ตัวอย่าง เช่น `app/shop/[...slug]/page.js` ใช้ได้กับ `/shop/clothes` และก็ยังใช้ได้กับ `/shop/clothes/tops` `/shop/clothes/tops/t-shirts` และอื่นๆ ได้อีกด้วย
+
+<table>
+  <thead>
+    <tr>
+      <th>Routes</th>
+      <th>Example URL</th>
+      <th>params</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>app/shop/[...slug]/page.js</td>
+      <td>/shop/a</td>
+      <td>`{ slug: ['a']}`</td>
+    </tr>
+    <tr>
+      <td>app/shop/[...slug]/page.js</td>
+      <td>/shop/a/b</td>
+      <td>`{ slug: ['a','b']}`</td>
+    </tr>
+    <tr>
+      <td>app/shop/[...slug]/page.js</td>
+      <td>/shop/a/b/c</td>
+      <td>`{ slug: ['a','b','c']}`</td>
+    </tr>
+  </tbody>
+</table>
+<hr />
+## Optional Catch-all Segments
+
+DCatch-all Segments ยังสามารถสร้างทางเลือกโดยการใช้ parameter ในวงเล็บสี่เหลี่ยมซ้อนกัน 2 ชั้นตามรูปแบบนี้=> [[...folderName]] ได้
+
+ตัวอย่าง เช่น `app/shop/[[...slug]]/page.js` ใช้ได้กับ `/shop` และก็ยังใช้ได้กับ `/shop/clothes` `/shop/clothes/tops` `/shop/clothes/tops/t-shirts` ได้
+
+ข้อแตกต่างระหว่าง catch-all กับ optional catch-all sement คือ optional ใช้กับ route ที่ไม่มี parameter ได้ เช่น /shop เป็นต้น
+
+<table>
+  <thead>
+    <tr>
+      <th>Routes</th>
+      <th>Example URL</th>
+      <th>params</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>app/shop/[[...slug]]/page.js</td>
+      <td>/shop</td>
+      <td>`{}`</td>
+    </tr>
+    <tr>
+      <td>app/shop/[[...slug]]/page.js</td>
+      <td>/shop/a</td>
+      <td>`{ slug: ['a']}`</td>
+    </tr>
+    <tr>
+      <td>app/shop/[[...slug[]/page.js</td>
+      <td>/shop/a/b</td>
+      <td>`{ slug: ['a','b']}`</td>
+    </tr>
+    <tr>
+      <td>app/shop/[[...slug]]/page.js</td>
+      <td>/shop/a/b/c</td>
+      <td>`{ slug: ['a','b','c']}`</td>
+    </tr>
+  </tbody>
+</table>
+## TypeScript
+
+เมื่อเราใช้ TypeScript เราจะสามารถเพิ่ม type สำหรับ params ได้ ขึ้นอยู่กับการตั้งค่าให้กับ route segment
+`app/blog/[slug]/page.tsx`
+
+```
+export default function Page({ params }:{params:{ slug:string }}){
+  return <h1>My Page</h1>
+}
+```
+
+<table>
+  <thead>
+    <tr>
+      <th>Routes</th>
+      <th>params Type Definition</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>app/blog/[slug]/page.js</td>
+      <td>` { slug: string }`</td>
+    </tr>
+    <tr>
+      <td>app/shop/[...slug]/page.js</td>
+      <td>`{ slug: string[]}`</td>
+    </tr>
+    <tr>
+      <td>app/[categoryId]/[itemId]/page.js</td>
+      <td>`{ categoryId: string, itemId: string }`</td>
+    </tr>
+  </tbody>
+</table>
+> สิ่งที่ควรรู้
+> เราอาจจะกำหนด type นี้ในอนาคต ด้วย TypeScript plugin
+<hr />
+## Next Steps
+
+ต่อไปเราจะไปเรียนรู้เกี่ยวกับ Loading UI and Streaming กัน
+
+<hr />
+แปลและเรียบเรียงโดย ModTdin
+
+Original: [Dynamic Routes](https://nextjs.org/docs/app/building-your-application/routing/dynamic-routes)
+
+<hr />
+[01-05-Route-Groups](https://themodcoding.vercel.app/blogs/01-05-Route-Groups)
+
+[**Home**](/)

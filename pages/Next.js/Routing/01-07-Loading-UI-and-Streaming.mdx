@@ -1,0 +1,126 @@
+---
+title: 01-07 Loading UI and Streaming
+description: การใช้ Loading UI และ Streaming ใน App Router ของ Next.js
+---
+
+# 01-07 Loading UI and Streaming
+
+การใช้ไฟล์ loading.js ซึ่งเป็นไฟล์พิเศษเฉพาะช่วยในการแสดง UI เพื่อสื่อความหมายว่าการทำงานของ route segment อยู่ในสถานะกำลังโหลดข้อมูลจาก server เมื่อการโหลดข้อมูลเสร็จสิ้น ก็จะแสดงเนื้อหาที่โหลดมาโดยอัตโนมัติ โดยที่ไฟล์นี้จะมีความสัมพันธ์กับ React Suspense ซึ่งจะกล่าวถึงในอีกหัวข้อหนึ่ง
+![](/01-07-img/loading-ui.avif)
+
+## Instant Loading States
+
+Instant Loading States คือการเรียกใช้(fallback) UI เพื่อให้แสดงทันทีเมื่อมีการเรียกใช้ navigation เราสามารถทำการ pre-render ตัวแสดงสถานะขณะกำลังโหลด เตรียมไว้ก่อน เช่น การใช้ skeleton แสดง layout คร่าวๆของของข้อมูล หรือการแสดงตัว spinners เพื่อแสดงสถานะว่ากำลังโหลดข้อมูลอยู่ หรือการสื่อความหมายสำหรับหน้าจอที่จะแสดงผลต่อจากนี้ เช่น รูป cover หรือ title เป็นต้น การทำแบบนี้จะช่วยให้ผู้ใช้เข้าใจว่าแอพลิเคชันของเรากำลังทำงานอยู่ จึงทำให้ผู้ใช้เกิดประสบการณ์ที่ดีขึ้น
+
+เราสามารถสร้าง loading state โดยการสร้างไฟล์ loading.js เพิ่มเข้าไปในโฟลเดอร์ ดังแสดงในภาพข้างล่างนี้
+![](/01-07-img/loading-special-file.avif)
+`app/dashboard/loading.tsx`
+
+```
+export default function Loading(){
+  // เราสามารถใส่ UI แบบต่างๆเข้ามาใน loading รวมถึงสามารถใช้ Skeleton ตรงนี้ได้
+
+  return <LoadingSkeleton />
+}
+```
+
+loading.js จะถูกครอบไว้ใน layout.js ที่อยู่ในโฟลเดอร์เดียวกัน และมันจะครอบ page.js และ children ข้างล่างที่อยู่ในขอบเขตของ `<Suspense>` ให้โดยอัตโนมัติ
+![](/01-07-img/loading-overview.avif)
+
+> สิ่งที่ควรรู้
+>
+> - Navigtion จะทำงานทันทีร่วมกับ server-centric routing
+> - Navigation สามารถถูกขัดจังหวะการทำงานได้ หมายความว่า การเปลี่ยน route สามารถเกิดขึ้นได้ทันทีไม่ต้องรอให้โหลดเสร็จทั้งหมดก่อน ก่อนที่จะเปลี่ยนไป route อื่น
+> - layout ที่ถูกใช้ร่วมกันยังคงทำงานอยู่แม้ว่ากำลังโหลด route segment ใหม่
+
+> คำแนะนำ:
+> ใน Next.js จะใช้ loading.js ตามข้อกำหนดสำหรับ route segment (route และ pages) ให้เกิดความเหมาะสมมากที่สุด
+
+<hr />
+## Streaming with Suspense
+
+นอกจาก loading.js แล้วเรายังสามารถสร้าง Suspense Boundaries ขึ้นมาเองได้โดยใช้ UI ของเราเอง ใน App Router รองรับการ streaming ด้วย Suspense ทั้งใน Node.js และใน Edge runtime
+
+### Streaming คืออะไร
+
+ในส่วนนี้เราจะมาเรียนรู้การทำงานของ Streaming ใน React และ Next.js เพื่อช่วยให้เราเข้าใจการทำงานและข้อจำกัดของ **Server-Side Rendering(SSR)**
+
+นี่คือขั้นตอนการทำงานของ SSR ที่ต้องทำให้เสร็จทุกขั้นตอนก่อนที่ผู้ใช้จะสามารถเห็นและใช้งานหน้าเพจนั้นได้
+
+1.  ข้อมูลทั้งหมดของหน้านั้นจะต้องถูก fetched บน server
+2.  Server ทำการ render ให้เป็น HTML สำหรับหน้านั้น
+3.  ทั้ง HTML CSS และ JavaScript ของหน้านั้นจะถูกส่งไปที่ client
+4.  ทำการสร้าง HTML และ CSS โดยไม่แสดงส่วนที่เป็น interactive
+5.  ขั้นตอนสุดท้าย React hydrates เพื่อสร้าง interface ที่เป็น interactive ของหน้านั้น
+
+![](/01-07-img/server-rendering-without-streaming-chart.avif)
+ในขั้นตอนนี้จะทำงานเป็นลำดับขั้นและเป็นแบบ blocking หมายความว่า จะ render ข้อมูล HTML ทั้งหมดในครั้งเดียวที่มีการ fetched ข้อมูล และในฝั่ง client React สามารถทำได้แค่การ hydrate UI เมื่อโค้ดทั้งหมดทุก component ในหน้าเพจได้ถูกดาวน์โหลดเสร็จเรียบร้อยแล้ว
+
+SSR กับ React และ Next.js จะทำการปรับปรุงประสิทธิภาพในการดาวน์โหลดร่วมกัน โดยแสดงเฉพาะข้อมูลเพจที่ไม่มี interactive ให้เร็วที่สุดเท่าที่เป็นไปได้
+![](/01-07-img/server-rendering-without-streaming.avif)
+แต่อย่างไรก็ตาม อาจจะยังช้าอยู่ถ้าการ fetch ข้อมูลทั้งหมดที่ต้องการบน server จะต้องเสร็จก่อนที่เพจจะแสดงให้ผู้ใช้ได้เห็น
+
+**Streaming** ทำให้เราแบ่ง HTML ของหน้าเพจเป็นส่วนเล็กๆ และ server จะทยอยส่งชิ้นส่วนเหล่านี้มาให้ client จนกว่าจะหมด
+![](/01-07-img/server-rendering-with-streaming.avif)
+การทำแบบนี้จะทำให้หน้าเพจค่อยๆแสดงทีละส่วนจนหมดโดยไม่ต้องรอให้ข้อมูลทั้งหมดถูก render ก่อนที่จะเปลี่ยนไป
+
+Streaming ทำงานได้ดีกับแอพในรูปแบบของ React component เพราะสามารถคิดว่าแต่ละ component คือแต่ละส่วนได้ Component ที่มีความสำคัญสูงกว่า เช่น product information หรือ component ที่ไม่ขึ้นอยู่กับข้อมูลเช่น layout จะได้รับการส่งมาก่อน ทำให้ React สามารถเริ่มทำการ hydration ได้เร็วขึ้น ส่วน Component ที่มีความสำคัญต่ำ เช่น review หรือ สินค้าที่เกี่ยวข้อง จะถูกส่งจาก request เดียวกันของ server หลังจากที่ ข้อมูลถูก fetched แล้ว
+![](/01-07-img/server-rendering-with-streaming-chart.avif)
+การ Streaming นี้เป็นข้อได้เปรียบเมื่อเราต้องการป้องกันการ request ข้อมูลนานๆ จาก blocking page จากการ rendering นั่นคือการลด Time to First Byte(TTFB) และ First Contentful Paint(FCP) นั่นก็หมายความว่า ช่วยให้ Time to Interactive(TTI) ดีขึ้นด้วย โดยเฉพาะกับในอุปกรณ์ที่ทำงานช้า
+
+## ตัวอย่าง
+
+`<suspense>` จะทำงานโดยการครอบ component ที่ทำงานแบบ asynchronous action เช่น การ fetch ข้อมูล การแสดง fallback UI เช่น skeleton หรือ spinner เมื่อมันเกิดขึ้นและจะเปลี่ยนเป็นหน้าที่เราต้องการทันทีเมื่อการทำงานเสร็จสิ้น
+`app/dashboard/page.tsx`
+
+```
+import { Suspense } from 'react'
+import { PostFeed, Weather } from './Components'
+
+export default function Posts() {
+  return (
+    <section>
+      <Suspense fallback={<p>Loading feed...</p>}>
+        <PostFeed />
+      </Suspense>
+      <Suspense fallback={<p>Loading weather...</p>}>
+        <Weather />
+      </Suspense>
+    </section>
+  )
+}
+```
+
+ประโยชน์จากการใช้ `<Suspense>` คือ
+
+1. Streaming Server Rendering - ทำการทยอย Render HTML จาก server ไปให้ client
+2. Selective Hydration - React จะจัดลำดับความสำคัญก่อนหลังให้แต่ละ component ที่จะทำ interactive กับผู้ใช้
+
+สำหรับตัวอย่างเพิ่มเติมเกี่ยวกับ `Suspense` และวิธีการใช้งาน ศึกษาได้จาก [React Document](https://react.dev/reference/react/Suspense)
+
+## SEO
+
+- Next.js จะรอให้ fetching data ข้างใน `generateMetadata` ให้เสร็จก่อนจึงจะทำการ streaming UI ไปให้ client เพื่อเป็นการรับประกันว่า ส่วนแรกที่ได้ทำการ streamed ไปแล้วมี `<head>` tag อยู่ด้วยแน่นอน
+- เมื่อ streaming ถูก server render เสร็จ จะไม่ส่งผลกระทบต่อ SEO เราสามารถใช้เครื่องมือทดสอบชื่อ [Mobile Friendly Test](https://search.google.com/test/mobile-friendly) ของ google เพื่อดูว่า page ของเรามีลำดับการแสดงผลบน Google web crawler อย่างไรบ้าง และดูการเรียงลำดับของ HTML ([source](https://web.dev/articles/rendering-on-the-web#seo-considerations))
+
+## Status Code
+
+เมื่อเราทำการ streaming สำเร็จ จะมีการคืนค่าเป็นโค้ด `200` เพื่อแสดงว่า server ทำสิ่งที่ request มาสำเร็จ
+
+และ Server ยังสามารถคืนค่า error หรือ issue ที่เกิดขึ้นไปให้ client พร้อมกับข้อมูลที่ stream ไปให้ client ด้วย ตัวอย่าง เช่น การใช้ `redirect` หรือ `notFound` เมื่อส่งส่วนของ headers ไปให้ client เสร็จเรียบร้อยแล้ว status code นี้จะไม่มีการ update อีก การทำแบบนี้จะไม่มีผลกระทบต่อ SEO
+
+<hr />
+
+## Next Steps
+
+ต่อไปเราจะไปเรียนรู้เกี่ยวกับ [Error Handling](https://themodcoding.vercel.app/blogs/01-08-Error-Handling) กัน
+
+<hr />
+แปลและเรียบเรียงโดย ModTdin
+
+Original: [Loading UI and Streaming](https://nextjs.org/docs/app/building-your-application/routing/loading-ui-and-streaming)
+
+<hr />
+[01-06-Dynamic-Routes](https://themodcoding.vercel.app/blogs/01-06-Dynamic-Routes)
+
+[**Home**](/)

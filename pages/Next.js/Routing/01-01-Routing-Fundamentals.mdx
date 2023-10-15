@@ -1,0 +1,189 @@
+---
+title: 01-01 Routing Fundamentals
+description: ความรู้พื้นฐานเกี่ยวกับ Routing
+---
+
+# 01-01 ความรู้พื้นฐานเกี่ยวกับ Routing (Routing Fundamentals)
+
+ในทุกๆแอพพลิเคชั่นจะมี routing เป็นโครงสร้างหลัก เนื้อหาในบทนี้จะกล่าวถึงความรู้พื้นฐานเรื่อง routing ของ web และ การทำงานกับ routing ใน Next.js
+
+<hr />
+## คำศัพท์พื้นฐาน
+
+อันดับแรกเราจะเรียนรู้เกี่ยวกับคำศัพท์ที่เกี่ยวข้อง ตามที่แสดงในรูปภาพต่อไปนี้
+
+![](/01-01-img/terminology-component-tree.avif)
+
+- **Tree**: คือ การแสดงโครงสร้างของเว็บโดยเปรียบเทียบกับส่วนต่างๆของต้นไม้ เช่น root(ราก) leave(ใบ)เป็นต้น ตัวอย่างเช่น component tree ประกอบด้วย component ที่เป็น parent และ children นอกจากนั้นยังแสดงให้เห็นถึง โครงสร้างของ file และ folder ในแอพลิเคชั่นอีกด้วย
+
+- **Subtree**: คือ ส่วนหนึ่งของ tree โดยเริ่มจาก จุดเริ่มต้นที่เรากำหนดจะเรียกว่า new root(รากใหม่) ของ subtree นั้น และสิ้นสุดที่ leave(ส่วนใบ)
+- **Root**: คือจุดแรก(first node) ของ tree หรือ subtree เช่น root layout
+- **Leaf**: เป็นส่วนหนึ่งของ subtree ที่ไม่มี chrildren มักจะเป็นส่วนสุดท้ายของ URL path
+  ![](/01-01-img/terminology-url-anatomy.avif)
+- **URL Segment**: คือส่วนของ URL path จะปิดท้ายด้วยเครื่องหมาย slashes
+- **URL Path**: คือส่วนของ URL path ที่ต่อจาก Domain(ประกอบขึ้นจาก URL segment)
+  <hr />
+
+## The app Router
+
+ในเวอร์ชั่น 13 ของ Next.js ได้มีการสร้างชิ้้นส่วนใหม่ขึ้นมาใช้งานบน React Server Components ที่เรียกว่า App Router
+ซึ่ง App Router นี้จะรองรับการทำงานใหม่ ดังนี้
+
+- การใช้ layout ร่วมกัน (Shared layout)
+- การนำ routing มาซ้อนกัน (Nested routing)
+- การแสดงผลระหว่างการรอโหลด (loading states)
+- การจัดการกับ error (Error handling)
+- และอื่นๆ
+
+การทำงานของ App Router นี้จะทำงานภายใต้ไดเรกทอรีที่ชื่อว่า app
+ในส่วนของไดเรกทอรี่ app นี้ สามารถทำงานคู่ไปกับไดเรกทอรี pages ที่มีอยู่เดิมได้ ซึ่งจะเป็นการเพิ่มทางเลือกในการจัดการ route ของแอพพลิเคชั่นเดิมของเราให้มีความสามารถในการทำงานกับ route มากขึ้น (ถ้าคุณใช้ Pages directory ในแอพพลิชันของคุณ ให้ดูคู่มือของ Pages Router ซึ่งอยู่นอกเหนือจากคู่มือนี้)
+
+> สิ่งที่ควรรู้: ใน Next.js จะจัดลำดับความสำคัญของ App Router ให้มาก่อน Page Router เสมอ
+> หากมี Routes ข้ามไดเรกทอรีจะไม่สามารถทำงานใน URL Path เดียวกัน และจะส่งผลให้เกิด error เมื่อถูกเรียกใช้งาน
+
+![](/01-01-img/next-router-directories.avif)
+ค่าเริ่มต้นของ components ที่อยู่ใน app จะทำงานบน React Server Component ซึ่งจะทำให้เกิดประสิทธิภาพที่ดี และทำให้ง่ายต่อการนำไปใช้ (หากคุณต้องการทำงานบน Client Components คุณสามารถดูได้ในหัวข้อ Client Component)
+
+> หากคุณยังใหม่กับการใช้ Server Component แนะนำให้อ่านในหัวข้อ Server Components
+
+<hr />
+## หน้าที่ของ Folders และ Files
+
+ใน App Router Next.js จะใช้ Folders และ Files ในการกำหนด route
+ดังนี้
+
+- **Folders** จะใช้ในการกำหนด routes โดยใช้ลำดับการซ้อนกันของ Folder
+  เป็นเส้นทางของหน้าเพจที่ใช้แสดงผล ซึ่งจะเรียงตามลำดับ เริ่มตั้งแต่ Folder ชั้นนอกสุด(root
+  folder)ไปจนถึงโฟลเดอร์ที่อยู่ในสุด(leaf folder) ซึ่งจะเก็บไฟล์ page.js อยู่ข้างใน
+  (ดูเพิ่มเติมในหัวข้อ Defining Routes)
+
+- **Files** จะเป็นส่วนที่ใช้เก็บโค้ดสำหรับสร้าง
+  UI ที่จะแสดงผลสำหรับ rout segment นั้น (ดูเพิ่มเติมในหัวข้อ special files)
+  {" "}
+
+  <hr />
+  ## Route segments
+
+  folder หนึ่งชั้นใน route นั้น จะทำหน้าที่เป็นหนึ่งตัวของ **route segment** ซึ่งเมื่อประกอบกันโดยเรียง route segment ตั้งแต่ต้นจนครบทุกตัวในเส้นทางนั้นก็จะเป็น
+  **URL Path**
+  ![](/01-01-img/route-segments-to-path-segments.avif)
+
+  <hr />
+
+## การสร้าง Nested Routes (Nested Routes)
+
+ในการสร้าง Nested Routes เราทำได้โดยสร้างโฟลเดอร์ขึ้นมาในโฟล์เดอร์ชั้นที่สูงกว่า เช่น เราจะสร้าง route ที่มีรูปแบบ `/dashboard/settings` โดยสร้าง folder ชื่อ dashboard ให้อยู่ใน folder ชื่อ app และ สร้าง Folder ชื่อ settings ให้อยู่ใน Folder ชื่อ dashboard อีกทีหนึ่ง
+
+สรุป `/dshboard/settings` มีส่วนประกอบ 3 segments คือ
+
+- / (Root segment)
+- dashboard (Segment)
+- settings (Leaf segment)
+  <hr />
+
+## การตั้งชื่อไฟล์ (File Conventions)
+
+ใน Next.js จะมีไฟล์พิเศษสำหรับการสร้าง UI ซึ่งจะมีลักษณะเฉพาะ ดังนี้
+
+<table>
+  <thead>
+    <tr>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>layout</td>
+      <td>ทำหน้าที่ shared UI สำหรับ segment และ children ของมัน</td>
+    </tr>
+    <tr>
+      <td>page</td>
+      <td>ทำหน้าที่เป็น UI ของ route นั้น และทำให้ route นั้นแสดงผลได้</td>
+    </tr>
+    <tr>
+      <td>loading</td>
+      <td>ทำหน้าที่เป็น UI ในการ loading ของ segment และ children ของมัน</td>
+    </tr>
+    <tr>
+      <td>not-found</td>
+      <td>
+        ทำหน้าที่เป็น UI เมื่อเกิด Not found ของ segment และ children ของมัน
+      </td>
+    </tr>
+    <tr>
+      <td>error</td>
+      <td>ทำหน้าที่เป็น UI เมื่อเกิด Error ของ segment และ children ของมัน</td>
+    </tr>
+    <tr>
+      <td>global-error</td>
+      <td>ทำหน้าที่เป็น UI เมื่อเกิด Global Error</td>
+    </tr>
+    <tr>
+      <td>route</td>
+      <td>ทำหน้าที่เป็น endpoint ของ Server-side</td>
+    </tr>
+    <tr>
+      <td>template</td>
+      <td>เป็น UI layout พิเศษในการ re-rendered</td>
+    </tr>
+    <tr>
+      <td>default</td>
+      <td>เป็น Fallback UI ของ Parallel Routes</td>
+    </tr>
+  </tbody>
+</table>
+> ข้อควรรู้: ไฟล์พิเศษเหล่านี้ แต่ละไฟล์สามารถมีนามสกุลเป็น .js .jsx .tsx อย่างใดอย่างหนึ่งก็ได้
+<hr />
+## ผัง Component (Component Hierachy)
+
+ในการสร้างไฟล์พิเศษสำหรับ React Component จะมีการ render ตามลำดับ ดังนี้:
+
+- layout.js
+- template.js
+- error.js (React error boundary)
+- loading.js (React suspense boundary)
+- not-found.js (React error boundary)
+- page.js หรือ nested layout.js
+  ![](/01-01-img/file-conventions-component-hierarchy.avif)
+  ในการใช้ route แบบซ้อนกัน Component segment(สีม่วงในรูปด้านล่าง) จะซ้อนอยู่ข้างในของ parent segment(สีฟ้าในรูป)
+  ![](/01-01-img/nested-file-conventions-component-hierarchy.avif)
+  <hr />
+
+## Colocation
+
+เราสามารถสร้างไฟล์พิเศษเพิ่มเติมลงไปในโฟลเดอร์ต่างๆในไดเรกทอรี app ของเราเพื่อเพิ่มคุณลักษณะพิเศษได้ เราจะเรียกวิธีการนี้ว่าการทำ colocation (เช่น ไฟล์ components ไฟล์ styles ไฟล์ tests และอื่นๆ)
+
+ที่เป็นอย่างนี้เพราะว่า Next.js ใช้ folder ในการกำหนด routes และแสดงเฉพาะข้อมูลในไฟล์ page.js หรือ route.js เท่านั้น
+
+![](/01-01-img/project-organization-colocation.avif)
+
+<hr />
+## วิธีการกำหนด Route ขั้นสูง(Advance Routing Patterns)
+
+ใน App Router เรามีเครื่องมือที่ช่วยในการทำงานสำหรับรูปแบบการจัดการ route ขั้นสูง ประกอบด้วย
+
+- Parallel Routes: ทำให้เราแสดงสองหน้าหรือมากกว่าใน view เดียวกันได้ และสามารถนำทางของแต่ละหน้าได้ เราสามารถใช้มันแบ่งหน้าจอแสดงผลทำให้มีการนำทางของแต่ละเพจได้ เช่น Dashboards
+
+- Intercepting Routes: ทำให้เรา intercept a route และแสดงมันให้เป็นส่วนหนึ่งของ route อื่น เราสามารถใช้เครื่องมือนี้สำหรับการคงบริบทเดิมไว้สำหรับหน้าปัจจุบัน เช่น เราสามารถดู task ต่างๆ เมื่อเราแก้ไข task หนึ่ง หรือ ขยายรูปใน feed
+
+เครื่องมือนี้ทำให้เราสร้าง UI ที่ซับซ้อนได้มากขึ้น
+
+<hr />
+
+## Next Steps
+
+และตอนนี้เราเข้าใจเกี่ยวกับความรู้พื้นฐานของ Routing ใน [01-02-Defining-Routes](https://themodcoding.vercel.app/blogs/01-02-Defining-Routes)
+
+<hr />
+แปลและเรียบเรียงโดย ModTdin
+
+Original: [Routing](https://nextjs.org/docs/app/building-your-application/routing)
+
+<hr />
+[01-00-App-Router](https://themodcoding.vercel.app/blogs/01-00-App-Router)
+
+[**Home**](/)
+
+[01-02-Defining-Routes](https://themodcoding.vercel.app/blogs/01-02-Defining-Routes)

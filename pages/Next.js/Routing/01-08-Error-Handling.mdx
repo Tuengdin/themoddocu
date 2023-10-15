@@ -1,0 +1,89 @@
+---
+title: 01-08 Error Handling
+description: การจัดการกับ Error ใน App Router ของ Next.js
+---
+
+# 01-08 Error Handling
+
+การกำหนดให้ใช้ไฟล์ `error.js` ทำให้เราสามารถจัดการกับ error ขณะทำงานที่เราคาดไม่ถึงใน nested routes ได้
+
+- ระบบจะมีการจัดให้ครอบ route segment และ nested children ของมันโดยอัตโนมัติใน [React Error Boundary](https://react.dev/reference/react/Component#catching-rendering-errors-with-an-error-boundary)
+- การสร้าง UI สำหรับบอก error จะใช้เฉพาะใน segment ที่ไฟล์ error.js อยู่เท่านั้น
+- Isolate error มีผลกับ segment ระหว่างการทำงานของ function
+- เป็นการเพิ่ม function เข้าไปเพื่อป้องกันการทำ full page reload หากเกิดการ error
+
+เราสามารถสร้าง UI เพื่อแสดง error ได้โดยการสร้าง `error.js` เข้าไปใน route segment และ export React component ออกมา
+![](/01-08-img/error-special-file.avif)
+`app/dashboard/error.tsx`
+
+```
+'use client' //Error component จะต้องเป็น Client Component เท่านั้น
+
+import { useEffect } from 'react'
+
+export default function Error({
+  error,
+  reset,
+}:{
+  error: Error & { digest?: string }
+  reset: ()=>void
+}){
+  useEffect(()=>{
+    // Log the error to an error reporting service
+    console.error(error)
+  },[])
+
+  return (
+    <div>
+      <h2>Somthing went wrong!</h2>
+      <button
+        onClick={
+          // Attemp to recover by trying to re-render the segment
+          ()=>reset()
+        }
+      >
+        Try again
+      </button>
+    </div>
+  )
+}
+```
+
+## error.js ทำงานอย่างไร
+
+![](/01-08-img/error-overview.avif)
+
+- `error.js` จะสร้าง React Error Boundary ให้อัตโนมัติ โดยจะครอบ nested child segment หรือ `page.js` ไว้
+- React Component ที่ export จากไฟล์ error.js จะถูกใช้เป็น fallback component
+- ถ้ามีการโยน error เข้าไปใน error boundary ตัว error จะถูกเก็บไว้ และ rendered ตัว fallback component ออกไป
+- เมื่อ fallback error ทำงาน ตัว layout ที่อยู่เหนือ error boundary จะยังคงทำงานอยู่ และสามารถ interactive ได้ และ error component จะทำหน้าที่แสดง error ที่เกิดขึ้นตามที่กำหนดไว้ เพื่อเป็นการ recover from the error
+
+(หัวข้อข้างล่างจะทำการ update ข้อมูลเร็วๆนี้)
+
+## Recovering From errors
+
+## Nested Routes
+
+![](/01-08-img/nested-error-component-hierarchy.avif)
+
+## Handling Error in Layouts
+
+## Handling Errors in the Root Layouts
+
+## Handling Server Errors
+
+<hr />
+
+## Next Steps
+
+ต่อไปเราจะไปเรียนรู้เกี่ยวกับ Parallel Routes กัน
+
+<hr />
+แปลและเรียบเรียงโดย ModTdin
+
+Original: [Error Handling](https://nextjs.org/docs/app/building-your-application/routing/error-handling)
+
+<hr />
+[01-07-Loading-UI-and-Streaming](https://themodcoding.vercel.app/blogs/01-07-Loading-UI-and-Streaming)
+
+[**Home**](/)

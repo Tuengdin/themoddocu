@@ -1,0 +1,382 @@
+---
+title: 00-02 โครงสร้างไฟล์และโฟลเดอร์ใน Next.js (Next.js Project Structure)
+description: การติดตั้ง Next.js
+---
+
+# 00-02 โครงสร้างไฟล์และโฟลเดอร์ใน Next.js (Next.js Project Structure)
+
+ในส่วนนี้จะเรียนรู้เกี่ยวกับโครงสร้างไฟล์และโฟลเดอร์ของโปรเจค Next.js ซึ่งจะครอบคลุม top-level ไฟล์และโฟลเดอร์ configuration files และ routing conventions ใน app directory
+
+## Top-level folders
+
+<table>
+  <thead>
+    <tr>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>app</td>
+      <td>App Router</td>
+    </tr>
+    <tr>
+      <td>pages</td>
+      <td>Pages Router</td>
+    </tr>
+    <tr>
+      <td>public</td>
+      <td>Static assets to be served</td>
+    </tr>
+    <tr>
+      <td>src</td>
+      <td>Optional application source folder</td>
+    </tr>
+  </tbody>
+</table>
+
+## Top-level files
+
+<table>
+  <thead>
+    <tr>
+      <th>Next.js</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>next.config.js</td>
+      <td>ไฟล์ configuration สำหรับ Next.js</td>
+    </tr>
+    <tr>
+      <td>instrumentation.ts</td>
+      <td>ไฟล์ OpenTelemetry และ Instrumentation</td>
+    </tr>
+    <tr>
+      <td>middleware.ts</td>
+      <td>สำหรับ Next.js ใช้เรียก middleware</td>
+    </tr>
+    <tr>
+      <td>.env</td>
+      <td>ไฟล์เก็บตัวแปร Environment</td>
+    </tr>
+    <tr>
+      <td>.env.local</td>
+      <td>ไฟล์เก็บตัวแปร Local Environment</td>
+    </tr>
+    <tr>
+      <td>.env.production</td>
+      <td>ไฟล์เก็บตัวแปร Environment สำหรับ Production</td>
+    </tr>
+    <tr>
+      <td>.env.development</td>
+      <td>ไฟล์เก็บตัวแปร Environment สำหรับ development</td>
+    </tr>
+    <tr>
+      <td>.eslintrc.json</td>
+      <td>ไฟล์เก็บ Configuration สำหรับ ESLint</td>
+    </tr>
+    <tr>
+      <td>.gitignore</td>
+      <td>ไฟล์สำหรับเก็บรายชื่อไฟล์และโฟลเดอร์ที่ไม่ต้องการให้โหลดขึ้น Git</td>
+    </tr>
+    <tr>
+      <td>next-env.d.ts</td>
+      <td>ไฟล์สำหรับประกาศชนิดตัวแปร TypeScript สำหรับ Next.js</td>
+    </tr>
+    <tr>
+      <td>tsconfig.json</td>
+      <td>ไฟล์ Configuration สำหรับ TypeScript</td>
+    </tr>
+    <tr>
+      <td>jsconfig.json</td>
+      <td>ไฟล์ Configuration สำหรับ JavaScript</td>
+    </tr>
+  </tbody>
+</table>
+
+## app Routing Conventions
+
+### Routing Files
+
+<table>
+  <thead>
+    <tr>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>layout</td>
+      <td>.js .jsx .tsx</td>
+      <td>Layout</td>
+    </tr>
+    <tr>
+      <td>page</td>
+      <td>.js .jsx .tsx</td>
+      <td>Page</td>
+    </tr>
+    <tr>
+      <td>loading</td>
+      <td>.js .jsx .tsx</td>
+      <td>Loading UI</td>
+    </tr>
+    <tr>
+      <td>not-found</td>
+      <td>.js .jsx .tsx</td>
+      <td>Not found UI</td>
+    </tr>
+    <tr>
+      <td>error</td>
+      <td>.js .jsx .tsx</td>
+      <td>Error UI</td>
+    </tr>
+    <tr>
+      <td>global-error</td>
+      <td>.js .jsx .tsx</td>
+      <td>Global error UI</td>
+    </tr>
+    <tr>
+      <td>route</td>
+      <td>.js .ts</td>
+      <td>API endpoint</td>
+    </tr>
+    <tr>
+      <td>template</td>
+      <td>.js .jsx .tsx</td>
+      <td>Re-rendered layout</td>
+    </tr>
+    <tr>
+      <td>default</td>
+      <td>.js .jsx .tsx</td>
+      <td>Parallel route fallback page</td>
+    </tr>
+  </tbody>
+</table>
+
+## Nested Routes
+
+<table>
+  <thead>
+    <tr>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>folder</td>
+      <td>Rout segment</td>
+    </tr>
+    <tr>
+      <td>folder/folders</td>
+      <td>Nested rout segment</td>
+    </tr>
+  </tbody>
+</table>
+
+## Dynamic Routes
+
+<table>
+  <thead>
+    <tr>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>[folder]</td>
+      <td>Dynamic route segment</td>
+    </tr>
+    <tr>
+      <td>[...folder]</td>
+      <td>Catch-all route segment</td>
+    </tr>
+    <tr>
+      <td>[[...folder]]</td>
+      <td>Optional catch-all route segment</td>
+    </tr>
+  </tbody>
+</table>
+
+## Routes Groups และ Private Folders
+
+<table>
+  <thead>
+    <tr>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>(folder)</td>
+      <td>
+        สร้างโฟลเดอร์แบบนี้สำหรับจัดกลุ่ม route โดยไม่มีผลกับการใช้ routing
+      </td>
+    </tr>
+    <tr>
+      <td>_folder</td>
+      <td>โฟลเดอร์นี้และ child ทั้งหมด จะไม่อยู่ใน routing</td>
+    </tr>
+  </tbody>
+</table>
+
+## Parallel และ Intercepted Routes
+
+<table>
+  <thead>
+    <tr>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>@folder</td>
+      <td>ชื่อ slot</td>
+    </tr>
+    <tr>
+      <td>(.)folder</td>
+      <td>Intercept ในระดับเดียวกัน</td>
+    </tr>
+    <tr>
+      <td>(..)folder</td>
+      <td>Intercept ในระดับที่สูงขึ้นไปหนึ่งระดับ</td>
+    </tr>
+    <tr>
+      <td>(..)(..)folder</td>
+      <td>Intercept ในระดับที่สูงขึ้นไปสองระดับ</td>
+    </tr>
+    <tr>
+      <td>(...)folder</td>
+      <td>Intercept จาก root</td>
+    </tr>
+  </tbody>
+</table>
+
+## การตั้งชื่อของ Meta file
+
+### App Icons
+
+<table>
+  <thead>
+    <tr>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>favicon</td>
+      <td>.ico</td>
+      <td>ไฟล์ Favicon</td>
+    </tr>
+    <tr>
+      <td>icon</td>
+      <td>.ico .jpg .jpeg .png .svg</td>
+      <td>ไฟล์ App icon</td>
+    </tr>
+    <tr>
+      <td>icon</td>
+      <td>.js .ts .tsx</td>
+      <td>ไฟล์สร้าง App icon</td>
+    </tr>
+    <tr>
+      <td>apple-icon</td>
+      <td>.jpg .jpeg .png</td>
+      <td>ไฟล์ Apple App icon</td>
+    </tr>
+    <tr>
+      <td>apple-icon</td>
+      <td>.js .ts .tsx</td>
+      <td>ไฟล์สร้าง Apple App icon</td>
+    </tr>
+  </tbody>
+</table>
+
+### Open Graph และ Twitter Images
+
+<table>
+  <thead>
+    <tr>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>opengraph-image</td>
+      <td>.jpg .jpeg .png .gif</td>
+      <td>ไฟล์ Open Graph image</td>
+    </tr>
+    <tr>
+      <td>opengraph-image</td>
+      <td>.js .ts .tsx</td>
+      <td>ไฟล์สร้าง Open Graph image</td>
+    </tr>
+    <tr>
+      <td>twitter-image</td>
+      <td>.jpg .jpeg .png .gif</td>
+      <td>ไฟล์ Twitter image</td>
+    </tr>
+    <tr>
+      <td>twitter-image</td>
+      <td>.js .ts .tsx</td>
+      <td>ไฟล์สร้าง Twitter image</td>
+    </tr>
+  </tbody>
+</table>
+
+### SEO
+
+<table>
+  <thead>
+    <tr>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>sitemap</td>
+      <td>.xml</td>
+      <td>ไฟล์ sitemap</td>
+    </tr>
+    <tr>
+      <td>sitemap</td>
+      <td>.js .ts</td>
+      <td>ไฟล์สร้าง sitemap</td>
+    </tr>
+    <tr>
+      <td>robots</td>
+      <td>.txt</td>
+      <td>ไฟล์ robots</td>
+    </tr>
+    <tr>
+      <td>robots</td>
+      <td>.js .ts</td>
+      <td>ไฟล์สร้าง robots</td>
+    </tr>
+  </tbody>
+</table>
+
+<hr />
+แปลและเรียบเรียงโดย ModTdin
+
+Original: [Next.js Project Structure](https://nextjs.org/docs/getting-started/project-structure)
+
+<hr />
+[00-01-Installation](https://themodcoding.vercel.app/blogs/00-01-Installation)
+
+[**Home**](/)
+
+[01-00-App-Router](https://themodcoding.vercel.app/blogs/01-00-App-Router)

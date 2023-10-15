@@ -1,0 +1,226 @@
+---
+title: 01-04 Linking and Navigating
+description: การสร้าง Link และ Navigation ใน Next.js
+---
+
+# 01-04 การสร้าง Link และ Navigation ใน Next.js(Linking and Navigating)
+
+ในการทำ Navigate ระหว่าง routes ใน Next.js มีอยู่ 2 แนวทาง คือ
+
+1. ใช้คอมโพแนนท์ `<Link>`
+2. ใช้ `useRouter` Hook
+
+ในบทนี้เราจะเรียนรู้เกี่ยวกับการใช้ `<Link>` `useRouter()` และลงลึกไปถึงการทำงานของ navigation
+
+<hr />
+## `<Link>` Component
+
+`<Link>` เป็นวิธีพื้นฐานในการนำทางระหว่าง routes ใน Next.js เป็น built-in component ที่ขยายเพิ่มเติมมาจากแท็ก `<a>` ของ HTML ที่จะทำให้เราทำการ `prefetching` และ นำทางระหว่าง route ใน client-side
+
+เราสามารถ `import` จาก `next/link` และส่งค่าผ่าน `href` prop ไปให้ component
+`app/page.tsx`
+
+```
+import Link from 'next/link'
+
+export default function Page(){
+    return <Link href="/dashboard">Dashboard</Link>
+}
+```
+
+นอกจากนี้ยังมีวิธีอื่นอีกในการส่ง prop ผ่าน `<Link>`
+ลองศึกษาหัวข้อ [API reference](https://nextjs.org/docs/app/api-reference) เพิ่มเติม
+
+## Examples
+
+### Linking to Dynamic segments
+
+เมื่อเราจะใช้ link ทำงานกับ Dynamic segment เราสามารถใช้ template literals และ interpolation ในการสร้างรายการของ link ขึ้นมา เรามาดูวิธีการสร้างรายการของ blog post กัน
+`app/blog/PostList.js`
+
+```
+import Link from 'next/link'
+
+export default function PostList({posts}){
+    return (
+        <ul>
+            {posts.map((post)=>(
+                <li key={post.id}>
+                    <Link href={`/blog/${post.slug}`>{post.title}</Link>
+                </li>
+            ))}
+        </ul>
+    )
+}
+```
+
+### Checking Active Links
+
+เราสามารใช้ `usePathname()` เพื่อหา link ที่กำลังทำงานได้ ตัวอย่างเช่น ถ้าเราจะเพิ่ม class เข้าไปใน link ที่กำลังทำงาน เราจะต้องตรวจสอบว่า link ปัจจุบัน pathname ตรงกันกับ href ที่อ้างถึงหรือไม่
+
+`app/component/links/tsx`
+
+```
+'use client'
+
+import { usePathname } from 'next/navigation'
+import Link from 'next/link'
+
+export function Links(){
+    const pathname = usePathname()
+
+    return(
+        <nav>
+            <ul>
+                <li>
+                    <Link className={`link ${pathname === '/' ? 'active' : ''}`} href='/>
+                    Home
+                    </Link>
+                </li>
+                <li>
+                    <Link
+                        className={`link ${pathname === 'about' ? 'acive' : ''}`}
+                        href="/about"
+                    >
+                    </Link>
+                </li>
+            </ul>
+        </nav>
+    )
+}
+
+```
+
+### Scrolling to an `id`
+
+ค่าตั้งต้นใน App Router ของ Next.js จะเป็น scroll to the top ของ new route หรือ อยู่ที่ตำแหน่งเดิมสำหรับ การย้อนกลับ(backward) หรือ การนำทางไปข้างหน้า(forward)
+
+ถ้าเราต้องการให้ scroll ไปที่ตำแหน่งของ id ที่ต้องการ เราสามารถต่อท้ายด้วย `#` เพื่อเชื่อมหรือส่งผ่าน hash link เข้าไปให้ href prop เราสามารถใช้ได้กับ `<Link>` ในการ render ไปให้ `<a>` element
+
+```
+<Link href="/dashboard#setting">Setting</Link>
+
+// Output
+<a href="/dashboard#setting">Setting</a>
+
+```
+
+### Disabling scrool restoration
+
+ค่าตั้งต้นของ App Router ใน Next.js คือ scroll to top ของ route ใหม่ หรือ อยู่ที่ตำแหน่งเดิมสำหรับ การย้อนกลับ และ การนำทางไปข้างหน้า
+ถ้าเราต้องการตั้งค่าใหม่เราสามารถทำได้โดยตั้งค่า `scroll={false}` ใน `<Link>` component หรือ `scroll:false` ไปให้ `router.push()` หรือ router.replace()`
+
+```
+// next/link
+<Link href="/dashboard" scroll={false}>
+    Dashboard
+</Link>
+```
+
+```
+// useRouter
+import { useRouter } from 'next/navigation'
+
+const router = useRouter()
+
+router.push('/dashboard', { scroll: false })
+```
+
+## `useRouter()` Hook
+
+`useRouter` hook เป็นคำสั่งที่ทำให้เราสามารถเปลี่ยน routes ได้
+
+`useRouter` นี้ใช้ได้เฉพาะใน `use client` เท่านั้น และเราต้อง `import from next/navigation`
+`app/page.js`
+
+```
+'use client'
+
+import { useRouter } from 'next/navigation'
+
+export default funtion Page(){
+    const router = useRouter()
+
+    return(
+        <button type="button" onClick={()=>router.push('/dashboard')}>
+            Dashboard
+        </button>
+    )
+}
+```
+
+รายการคำสั่งสำหรับ `useRouter` ทั้งหมด ดูได้ที่ [API reference](https://nextjs.org/docs/app/api-reference)
+
+> Next.js แนะนำให้ใช้ `<Link>` ในการนำทางระหว่าง routes จนกว่าจะมีความต้องการเฉพาะที่ต้องใช้ `useRouter`
+
+## How Routing and Navigation Works
+
+App Router ของ NExt.js ใช้การผสมกันระหว่า routing และ navigation
+ฝั่ง server โค้ดของเราจะถูแแบ่งโดย route-segment และฝั่ง client นั้น Next.js จะทำการ prefetches และ caches ตัว route segment หมายความว่า เมื่อ user navigetes ไปที่ new route ตัว browser จะไม่ทำการ reload page จะมีเฉพาะ route segment เท่านั้นที่ทำการ re-render ใหม่ การทำแบบนี้เพื่อทำให้ navigation experience และ performance ดีขึ้น
+
+### 1. Prefetching
+
+prefetching คือ การ preload ตัว route ในการทำงานแบบเบื้องหลัง ก่อนที่ผู้ใช้จะเข้าไปใช้งาน
+
+การ Prefetching ใน Next.js มี 2 แนวทาง คือ
+
+- `<Link>` component: Routes ต่างๆ จะถูก prefetch โดยอัตโนมัติ เตรียมพร้อมเพื่อแสดงผลให้ user ดู จะเกิดขึ้นเมื่อมีการโหลดหน้าขึ้นมาครั้งแรก หรือเมื่อมีการดูผ่าน scroll
+
+- `router.prefetch(): โดยใช้ useRouter ในการสั่ง prefetch routes
+
+การ prefetchig ของ `<Link>` จะแตกต่างกันระหว่าง stacic กับ dynamic routes ดังนี้:
+
+- Static Routes: ค่าของ `prefetch` คือ `true` นั่นคือ routes ที่มีอยู่จะถูกทำ prefetched และ cached ไว้
+
+- Dynamic Routes: ค่าของ `prefetch` คือ `automatic` มีเฉพาะ shared layout ที่ถูกเตรียมไว้ จนกว่า loading.js จะถูก prefetch และจะทำการ cached ไว้ 30 วินาที การทำแบบนี้จะทำให้ลดการ fetching ของ dynamic routes ที่มีอยู่ทั้งหมด หมายความว่า เราสามารถแสดง instant loading state สำหรับแสดงผลให้กับ user
+
+เราสามารถปิดการ prefetching โดย ตั้งค่าที่ `prefetch` prop ให้เป็น `false`
+
+สามารถศึกษาเพิ่มเติมเกี่ยวกับ `<Link>` ได้ที่ [API reference](https://nextjs.org/docs/app/api-reference)
+
+> ความรู้เพิ่มเติม:
+>
+> - Prefetching จะทำงานเฉพาะ production เท่านี้ จะไม่ทำงานใน development
+
+### 2. Caching
+
+Next.js มีการใช้ in-memory client-side cached เรียกว่า **Router Cache**
+เมื่อ user ได้เปิดหน้าต่างๆของ app ตัว React Server Component Payload ของ prefetched route segment และ routes ที่ได้ดูไปแล้วจะถูกเก็บไว้ใน cache
+
+หมายความว่า ในการนำทางไปหน้าต่างๆนั้น Next.js จะนำข้อมูลใน cache มาใช้ใหม่ให้มากที่สุดเท่าที่เป็นไปได้ - การทำแบบนี้จะเป็นการลดจำนวนการ request ไปที่ server ซึ่งเป็นการปรับปรุงประสิทธิภาพโดยการลดจำนวนครั้งของการ request และ การถ่ายโอนข้อมูล
+
+ดูข้อมูลเพิ่มเติมในหัวข้อ Data Fetching สำหรับการทำงานของ Router Cache และการตั้งค่า
+
+### 3. Partial Rendering
+
+Partial Rendering คือการ re-render เฉพาะส่วนที่มีการเปลี่ยนแปลงของ route segment บน client และส่วนที่เป็น shared segment ที่จองไว้เท่านั้น
+
+ตัวอย่างเช่น เมื่อ มีการนำทางระหว่าง 2 routes ที่อยู่ในระดับเดียวกัน อย่าง `/dashboard/setting` และ `dashboard/analytics` ตัว route segment ที่อยู่ในระดับเดียวกัน คือ `setting` และ `analytics` ที่จะถูก render และ ใช้ layout ใน dashboard ร่วมกัน
+![](/01-04-img/partial-rendering.avif)
+ถ้าไม่มีการ render บางส่วน จะทำให้ต้อง render ใหม่ทั้งหมดบน server
+การ render บางส่วน ทำให้ลดจำนวนการถ่ายโอนข้อมูลและเวลาในการทำงาน ซึ่งหมายถึงการทำให้แอพมีประสิทธิภาพมากขึ้น
+
+### 4. Soft Navigation
+
+โดยค่าเริ่มต้น browser จะทำการ hard navigation ระหว่าง page หมายความว่า browser จะทำการ reload หน้าเพจและ reset React state เหมือนกับการใช้ `useState` และ reset browser state ให้กลับไปที่ค่าเริ่มต้น เช่น scroll postion ของ user หรือ fucused element
+แต่อย่างไรก็ตาม App Router ของ Next.js ใช้ soft navigation หมายความว่า React จะ render เฉพาะ segmment ที่มีการเปลี่ยนแปลงทั้ง React และ browser state และจะไม่ทำ full page reload
+
+### 5. Back and Forward navigation
+
+ค่าเริ่มต้นของ Next.js จะรักษา scroll position สำหรับ backward และ forward ไว้ และ re-use route segment ที่เก็บไว้ใน Router Cache
+
+<hr />
+
+## Next Steps
+
+ต่อไปเราจะไปเรียนรู้เกี่ยวกับ [01-05-Route-Groups](https://themodcoding.vercel.app/blogs/01-05-Route-Groups) กัน
+
+<hr />
+แปลและเรียบเรียงโดย ModTdin
+
+Original: [Linking and Navigating](https://nextjs.org/docs/app/building-your-application/routing/linking-and-navigating)
+
+<hr />
+[01-03-Pages-and-Layouts](https://themodcoding.vercel.app/blogs/01-03-Pages-and-Layouts)
+
+[**Home**](/)

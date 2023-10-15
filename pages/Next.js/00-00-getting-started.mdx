@@ -1,0 +1,95 @@
+---
+title: 00-00 Next.js Getting Started
+description: เริ่มต้นกับ Next.js
+---
+
+# เริ่มต้นกับ Next.js (Next.js Getting Started)
+
+## แนะนำ Next.js
+
+ยินดีต้อนรับเข้าสู่ การเรียนรู้ Next.js ภาษาไทย
+
+## Next.js คืออะไร
+
+Next.js คือ React framework สำหรับการสร้าง web applications แบบ full-stack
+เราใช้ React Components ในการสร้าง interface และ ใช้ Next.js สำหรับเพิ่มฟีเจอร์ที่มากขึ้น และ ทำให้มีประสิทธิภาพมากที่สุด
+
+Next.js จะตั้งค่าต่างๆที่ใช้กับ React ให้เราโดยอัตโนมัติ อย่างเช่น bundling การ compliling และอื่นๆ ซึ่งจะทำให้เราสามารถมีเวลาจดจ่อกับการสร้างแอพพลิเคชั่นมากขึ้น แทนที่จะมาเสียเวลาในการตั้งค่าต่างๆฺ
+
+Next.js สามารถช่วยเราสร้าง interactive dynamic และ แอพลิเคชัน React ที่ทำงานได้เร็ว ไม่ว่าเราจะเป็นนักพัฒนาโปรแกรมแบบเดี่ยวๆ หรือ เป็นส่วนหนึ่งของทีมใหญ่
+
+## หัวข้อหลักๆของ Next.js (Main Features)
+
+ตอนนี้เราจะขอแนะนำหัวข้อหลักๆที่เกี่ยวกับ Next.js ดังนี้
+
+### Routing
+
+    ระบบการจัดการไฟล์ในการสร้าง router ของ Server Components ซึ่งจะรองรับการทำงานของส่วนต่างๆดังนี้<br />
+    -layouts<br />
+    -nested routing<br />
+    -loading states<br />
+    -error handling<br />
+    และอื่นๆ
+
+### Rendering
+
+    การ render ของ Client และ Server Component ทั้งในฝั่ง Client-side และ Server-side โดยปรับการ renderให้ทำงานอย่างเหมาะสมท้้งในรูปแบบ Static และ Dynamic บน server ด้วย Next.js รวมถึงการ Streaming บน Edge และ Node.js runtime
+
+### Data fetching
+
+    ปรับการทำงานของ data fetching ให้ง่ายขึ้น โดยการใช้ async/await ใน sever Components และ ขยายความสามารถของ `fetch` API สำหรับการทำ<br /> - request memorization<br /> -data caching<br /> - revalidation
+
+### Styling
+
+    รองรับการทำ styling ทั้ง CSS TailwindCSS และ CSS-in-JSX
+
+### Optimizations
+
+    ทำการปรับปรุงคุณลักษณะของ Image, Fonts, and Script Optimizations ให้ดีขึ้น เพื่อปรับปรุง Core Web Vitals ของ web app และ User Experience ให้ดีขึ้น
+
+### TypeScript
+
+    ปรับปรุงเพื่อให้รองรับการทำงานของ TypeScript ด้วยการตรวจสอบ type ที่ดีขึ้น และมีประสิทธิภาพในการ compliation มากขึ้น และปรับแต่ง Plugin ของ typeScript และตัวตรวจสอบ type
+
+## วิธีการใช้ คู่มือการเรียนรู้ Next.js ฉบับภาษาไทยนี้
+
+คู่มือนี้จะเรียงตามลำดับจากระดับพื้นฐานไปขั้นสูง การสร้างแอพพลิเคชั่น เราสามารถทำตามคู่มือไปทีละขั้นได้ แต่อย่างไรก็ตามคุณสามารถอ่านในหัวข้อต่างๆโดยไม่เรียงลำดับเพื่อนำเนื้อหาไปประยุกต์ใช้ตามที่ต้องการ
+
+หากคุณต้องการเริ่มต้นตอนนี้เลย ให้ดูที่หัวข้อ การติดตั้ง Next.js
+
+---
+
+## App Router vs Pages Router
+
+ใน Next.js มี router 2 แบบ คือ App Router และ Page Router
+
+### App Router
+
+App Router เป็น router แบบใหม่ ที่ทำให้เราสามารถใช้คุณสมบัติล่าสุดของ React ได้ อย่างเช่น Server Components และ Streaming
+
+### Page Router
+
+Page Router เป็น router แบบดั้งเดิม ของ Next.js ซึ่งจะให้เราสร้าง server-rendered ของ React application และรองรับ Next.js แบบเก่าได้
+
+ซึ่งในที่นี้เราจะกล่าวถึงเฉพาะ App Router ซึ่งเป็น router แบบใหม่เท่านั้น
+
+---
+
+## ความรู้พื้นฐานที่ต้องมี
+
+แม้ว่าคู่มือของเราจะพยายามทำให้เหมาะสำหรับผู้ที่เริ่มต้นใหม่ แต่ผู้อ่านก็ยังต้องมีพื้นฐานความรู้มาก่อน เพื่อให้ผู้เรียนจดจ่อกับการเรียนรู้การทำงานของ Next.js โดยเฉพาะ
+
+เพื่อให้เกิดประสิทธิภาพสูงสุดในการเรียนรู้จากคู่มือเรา จึงขอแนะนำให้ผู้ที่ต้องการศึกษา ทำความเข้าใจความรู้พื้นฐานของ HTML CSS และ React
+
+หากคุณต้องการปรับพื้นฐานเกี่ยวกับ React ให้กดลิงก์ [Next.js Fundamental Course](https://nextjs.org/learn/foundations/about-nextjs)
+
+<hr />
+แปลและเรียบเรียงโดย ModTdin
+
+Original: [Introduction](https://nextjs.org/docs)
+
+<hr />
+
+[**Home**](/)
+
+[00-01-Installation](https://themodcoding.vercel.app/blogs/00-01-Installation)

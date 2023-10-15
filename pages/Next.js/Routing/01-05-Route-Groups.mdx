@@ -1,0 +1,67 @@
+---
+title: 01-05 การจัดกลุ่มของ Routes (Route Groups)
+description: การจัดกลุ่มของ Routes ใน App Router ของ Next.js
+---
+
+# 01-05 การจัดกลุ่มของ Routes (Route Groups)
+
+ในไดเรกทอรี app ใช้การสร้างโฟลเดอร์ซ้อนกัน(Nested folder) เป็นเครื่องมือในการสร้างเป็น URL path แต่เราก็สามารถสร้าง folder เพื่อกำหนดให้เป็นชื่อ Route Group ได้โดยที่โฟลเดอร์นี้ไม่มีการนำไปแสดงเป็นส่วนหนึ่งของ URL path
+
+Next.js อนุญาตให้มีการจัดกลุ่มใน route segment และไฟล์ต่างๆในโปรเจก โดยไม่กระทบต่อโครงสร้าง URL path
+
+ประโยชน์ของ Route groups คือ
+
+- จัดกลุ่มของ routes ให้เป็นหมวดหมู่ เช่น จัดกลุ่มโดย site section หรือโดยทีม
+- การทำ nested layouts ในระดับเดียวกัน
+  - สร้าง nested layout ซ้อนกันหลายๆอันใน segment เดียวกัน รวมถึง หลายๆ root layouts
+  - เพิ่ม layout เข้าไปเป็นส่วนหนึ่งของ routes ใน segment ปกติ
+    <hr />
+
+## ข้อกำหนด
+
+เราสามารถสร้าง route group ได้โดยการต้องชื่อโฟลเดอร์ไว้ในวงเล็บ เช่น (ชื่อโฟลเดอร์)
+
+<hr />
+## ตัวอย่าง{" "}
+
+### การจัดหมวดหมู่ของ Routes โดยไม่มีผลกระทบกับ URL path
+
+ในการจัดหมวดหมู่ของ route จะไม่ผลกระทบกับ URL การสร้างกลุ่มจะเก็บ routes ที่มีความสัมพันธ์กันไว้ด้วยกัน
+ชื่อโฟลเดอร์ที่อยู่ในวงเล็บจะถูกละไว้ไม่ต้องใส่เข้าไปใน URL เช่น (marketing) หรือ (shop) ตามตัวอย่างในภาพ
+
+![](/01-05-img/route-group-organisation.avif)
+แม้ว่า routes ใน (marketing) และ (shop) จะใช้ URL เหมือนกัน แต่เราก็สามารถสร้างไฟล์ layout.js ในแต่ละกลุ่ม เพื่อสร้างการแสดงผลที่แตกต่างกันได้
+![](/01-05-img/route-group-multiple-layouts.avif)
+
+### Opting specific segments ใน layout
+
+การสร้าง layout เฉพาะ routes ที่เลือก เราทำได้โดยสร้าง route group ใหม่ ในที่นี้คือ (shop) และย้าย routes ที่ใช้ layout ร่วมกันเข้าไปใน group ในที่นี้คือ account และ cart ส่วนข้างนอก group จะไม่ได้ร่วมใช้ layout นี้
+![](/01-05-img/route-group-opt-in-layouts.avif)
+
+### การสร้างหลาย root layout
+
+ในการสร้างหลาย root layout ของ App Router ใน Next.js จะไม่มีการใช้ไฟล์ layout.js ในระดับบนสุด และจะสร้าง layout.js ในแต่ละ route groups แทน วิธีนี้จะเป็นประโยชน์มากสำหรับการแบ่งแอพพลิเคชันออกเป็นส่วนๆ แต่ละส่วนนั้นมี UI ที่แยกกัน ในกรณีนี้ต้องใส่ `<html>` และ `<body>` เข้าไปในแต่ละ root layout ด้วย
+![](/01-05-img/route-group-multiple-layouts.avif)
+จากตัวอย่างข้างบน ทั้ง (marketing) และ (shop) มี root layout ของมันเอง
+
+> สิ่งที่ควรรู้
+>
+> - การตั้งชื่อ route group ไม่มีความสำคัญอื่นๆ นอกจากบอกให้รู้หมวดหมู่ของ route นั้น และมันก็ไม่มีผลต่อ URL path
+> - Routes ที่อยู่ใน rout group จะไม่ถูก resolve ใน path เดียวกัน เหมือนกับ path อื่นๆ เพราะว่า route group ไม่มีผลต่อโครงสร้าง URL เช่น (marketing)/about/page.js และ (shop)/about/page.js ทั้งสองอันนี้จะ resolve เป็น /about และนี่เป็นสาเหตุของการเกิด error
+> - ถ้าเราใช้ root layout หลายอัน โดยไม่มี layout.js ในระดับบนสุด หน้า home ของ page.js จะใช้มีการหนึ่งใน route groups เช่น app/(marketing)/page.js
+> - การนำทางระหว่าง multi root layout จะทำให้เกิดการ load แบบ full page load ตัวอย่างเช่น การนำทางจาก /cart ที่ใช้ app/(shop)/layout.js ไป /blog ที่ใช้ app/(marketing)/layout.js แบบนี้จะทำให้เกิดการโหลดแบบ full page load ปรากฏการณ์นี้จะเกิดขึ้นเฉพาะการใช้ multi root layout เท่านั้น
+
+<hr />
+## Next Steps
+
+ต่อไปเราจะไปเรียนรู้เกี่ยวกับ [01-06-Dynamic-Routes](https://themodcoding.vercel.app/blogs/01-06-Dynamic-Routes) กัน
+
+<hr />
+แปลและเรียบเรียงโดย ModTdin
+
+Original: [Route Groups](https://nextjs.org/docs/app/building-your-application/routing/route-groups)
+
+<hr />
+[01-04-Linking-and-Navigating](https://themodcoding.vercel.app/blogs/01-04-Linking-and-Navigating)
+
+[**Home**](/)
