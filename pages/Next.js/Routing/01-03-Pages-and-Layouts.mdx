@@ -21,19 +21,11 @@ route ในการเรียกให้ page.js แสดงผล
 จากภาพ เราจะได้ `app/page.js`เป็น UI ของ `/` URL
 (ในตัวอย่างโค้ด เราสามารถใช้ไฟล์ .jsx หรือ .tsx แทน .js ได้)
 
-```
+```js showLineNumbers filename="app/page.js"
 // โค้ดนี้จะใช้ `app/page.tsx` เป็น UI สำหรับ `/`
 
 export default function Page() {
     return <h1>Hello Home page!<h1/>
-}
-```
-
-```
-// โค้ดนี้จะใช้ `app/dashboard/page.tsx` เป็น UI สำหรับ `/dashboard`
-
-export default function Page() {
-    return <h1>Hello, Dashboard page!<h1/>
 }
 ```
 
@@ -60,22 +52,21 @@ Layout เป็น UI ที่ใช้ร่วมกันของ page ห
 เราสามารถกำหนด layout ได้โดย export React Component จากไฟล์ layout.js
 ซึ่ง component จะต้องรับค่า children prop เพื่อให้ child layout(ถ้ามี) หรือ child page ไปใช้งาน
 ![](/01-03-img/layout-special-file.avif)
-`app/dashboard/layout.tsx`
 
-```
-export default function DashboardLayout ({
-    children, // willbe a page or nested layout
-}:{
-    children: React.ReactNode
-}){
-    return (
+```tsx showLineNumbers filename="app/dashboard/layout.tsx"
+export default function DashboardLayout({
+  children, // willbe a page or nested layout
+}: {
+  children: React.ReactNode;
+}) {
+  return (
     <section>
-        {/* Include shared UI here e.g. a header or sidebar */}
-        <nav></nav>
+      {/* Include shared UI here e.g. a header or sidebar */}
+      <nav></nav>
 
-        {children}
+      {children}
     </section>
-    )
+  );
 }
 ```
 
@@ -97,19 +88,17 @@ export default function DashboardLayout ({
 Root layout จะถูกกำหนดให้อยู่ในระดับ top level ของไดเรกทอรี app และมีผลต่อทุก route ใน app
 ใน layout นี้ เปิดให้คุณสามารถปรับแต่ง HTML ที่ return มาจาก server ได้
 
-`app/layout.tsx`
-
-```
+```tsx showLineNumbers filename="app/layout.tsx"
 export default function RootLayout({
-    children,
-}:{
-    children: React.ReactNode
-}){
-    return (
-        <html lang="en">
-            <body>{children}</body>
-        </html>
-    )
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <html lang="en">
+      <body>{children}</body>
+    </html>
+  );
 }
 ```
 
@@ -128,15 +117,14 @@ export default function RootLayout({
 เราจะทำการกำหนด Layout ใน folder ตัวอย่างเช่น `app/dashboard/layout.js` เพื่อให้มีผลการใช้งานกับ route ที่ต้องการ เช่น `acme.com/dashboard` และทำงานเมื่อ segment นั้นถูกเรียกให้ทำงาน
 ค่าเริ่มต้นของ layout ในโครงสร้างไฟล์จะเป็น nested อยู่แล้ว หมายความว่า มันจะครอบ `child layout` ด้วย `children prop`
 ![](/01-03-img/nested-layout.avif)
-`app/dashboard/layout.tsx`
 
-```
+```tsx showLineNumbers filename="app/dashboard/layout.tsx"
 export default function DashboardLayout({
-    children,
-}:{
-    children: React.ReactNode
-}){
-    return <section>{children}</section>
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return <section>{children}</section>;
 }
 ```
 
@@ -165,18 +153,17 @@ Template คล้ายกับ layout ที่ครอบ child layout ห�
 
 template สามารถตั้งค่าโดย `export React component` จาก template.js และ component จะต้องรับค่าจาก children prop
 ![](/01-03-img/template-special-file.avif)
-`app/template.tsx`
 
-```
-export default function Template({ children}:{chlidren:React.ReactNode}){
-    return <div>{children}</div>
+```tsx showLineNumbers filename="app/template.tsx"
+export default function Template({ children }: { chlidren: React.ReactNode }) {
+  return <div>{children}</div>;
 }
 ```
 
 ในกรณีของ nesting ไฟล์ template.js จะถูก render ระหว่าง layout กับ children ของมัน ลองดูตัวอย่างของ output:
 `output`
 
-```
+```tsx showLineNumbers
 <Layout>
     {/* Note that the template is given a unique key. */}
     <Template key={routeParam}>{children}</template>
@@ -191,18 +178,15 @@ export default function Template({ children}:{chlidren:React.ReactNode}){
 
 `Metadata` สามารถตั้งค่าโดยการ `export` ตัว `meta object` หรือ ฟังก์ชัน `generateMetadata` ในไฟล์ layout.js หรือ page.js
 
-`app/page.tsx`
-
-```
-import {Metadata} from 'next'
+```tsx showLineNumbers filename="app/page.tsx"
+import { Metadata } from "next";
 
 export const metadata: Metadata = {
-    title: 'Next.js',
-}
+  title: "Next.js",
+};
 
-export default function Page()
-{
-    return '...'
+export default function Page() {
+  return "...";
 }
 ```
 

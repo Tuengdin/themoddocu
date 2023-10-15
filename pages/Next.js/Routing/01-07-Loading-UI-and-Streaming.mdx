@@ -14,13 +14,12 @@ Instant Loading States คือการเรียกใช้(fallback) UI �
 
 เราสามารถสร้าง loading state โดยการสร้างไฟล์ loading.js เพิ่มเข้าไปในโฟลเดอร์ ดังแสดงในภาพข้างล่างนี้
 ![](/01-07-img/loading-special-file.avif)
-`app/dashboard/loading.tsx`
 
-```
-export default function Loading(){
+```tsx showLineNumbers filename="app/dashboard/loading.tsx"
+export default function Loading() {
   // เราสามารถใส่ UI แบบต่างๆเข้ามาใน loading รวมถึงสามารถใช้ Skeleton ตรงนี้ได้
 
-  return <LoadingSkeleton />
+  return <LoadingSkeleton />;
 }
 ```
 
@@ -71,11 +70,10 @@ Streaming ทำงานได้ดีกับแอพในรูปแบ�
 ## ตัวอย่าง
 
 `<suspense>` จะทำงานโดยการครอบ component ที่ทำงานแบบ asynchronous action เช่น การ fetch ข้อมูล การแสดง fallback UI เช่น skeleton หรือ spinner เมื่อมันเกิดขึ้นและจะเปลี่ยนเป็นหน้าที่เราต้องการทันทีเมื่อการทำงานเสร็จสิ้น
-`app/dashboard/page.tsx`
 
-```
-import { Suspense } from 'react'
-import { PostFeed, Weather } from './Components'
+```tsx showLineNumbers filename="app/dashboard/page.tsx"
+import { Suspense } from "react";
+import { PostFeed, Weather } from "./Components";
 
 export default function Posts() {
   return (
@@ -87,7 +85,7 @@ export default function Posts() {
         <Weather />
       </Suspense>
     </section>
-  )
+  );
 }
 ```
 

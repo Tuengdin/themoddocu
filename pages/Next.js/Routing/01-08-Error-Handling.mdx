@@ -14,24 +14,23 @@ description: การจัดการกับ Error ใน App Router ขอ
 
 เราสามารถสร้าง UI เพื่อแสดง error ได้โดยการสร้าง `error.js` เข้าไปใน route segment และ export React component ออกมา
 ![](/01-08-img/error-special-file.avif)
-`app/dashboard/error.tsx`
 
-```
-'use client' //Error component จะต้องเป็น Client Component เท่านั้น
+```tsx showLineNumbers filename="app/dashboard/error.tsx"
+"use client"; //Error component จะต้องเป็น Client Component เท่านั้น
 
-import { useEffect } from 'react'
+import { useEffect } from "react";
 
 export default function Error({
   error,
   reset,
-}:{
-  error: Error & { digest?: string }
-  reset: ()=>void
-}){
-  useEffect(()=>{
+}: {
+  error: Error & { digest?: string };
+  reset: () => void;
+}) {
+  useEffect(() => {
     // Log the error to an error reporting service
-    console.error(error)
-  },[])
+    console.error(error);
+  }, []);
 
   return (
     <div>
@@ -39,13 +38,13 @@ export default function Error({
       <button
         onClick={
           // Attemp to recover by trying to re-render the segment
-          ()=>reset()
+          () => reset()
         }
       >
         Try again
       </button>
     </div>
-  )
+  );
 }
 ```
 

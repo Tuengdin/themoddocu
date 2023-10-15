@@ -18,13 +18,12 @@ description: การสร้าง Link และ Navigation ใน Next.js
 `<Link>` เป็นวิธีพื้นฐานในการนำทางระหว่าง routes ใน Next.js เป็น built-in component ที่ขยายเพิ่มเติมมาจากแท็ก `<a>` ของ HTML ที่จะทำให้เราทำการ `prefetching` และ นำทางระหว่าง route ใน client-side
 
 เราสามารถ `import` จาก `next/link` และส่งค่าผ่าน `href` prop ไปให้ component
-`app/page.tsx`
 
-```
-import Link from 'next/link'
+```tsx showLineNumbers filename="app/page.tsx"
+import Link from "next/link";
 
-export default function Page(){
-    return <Link href="/dashboard">Dashboard</Link>
+export default function Page() {
+  return <Link href="/dashboard">Dashboard</Link>;
 }
 ```
 
@@ -36,9 +35,8 @@ export default function Page(){
 ### Linking to Dynamic segments
 
 เมื่อเราจะใช้ link ทำงานกับ Dynamic segment เราสามารถใช้ template literals และ interpolation ในการสร้างรายการของ link ขึ้นมา เรามาดูวิธีการสร้างรายการของ blog post กัน
-`app/blog/PostList.js`
 
-```
+```tsx showLineNumbers filename="app/blog/PostList.js"
 import Link from 'next/link'
 
 export default function PostList({posts}){
@@ -58,9 +56,7 @@ export default function PostList({posts}){
 
 เราสามารใช้ `usePathname()` เพื่อหา link ที่กำลังทำงานได้ ตัวอย่างเช่น ถ้าเราจะเพิ่ม class เข้าไปใน link ที่กำลังทำงาน เราจะต้องตรวจสอบว่า link ปัจจุบัน pathname ตรงกันกับ href ที่อ้างถึงหรือไม่
 
-`app/component/links/tsx`
-
-```
+```tsx showLineNumbers filename="app/component/links.tsx"
 'use client'
 
 import { usePathname } from 'next/navigation'
@@ -97,7 +93,7 @@ export function Links(){
 
 ถ้าเราต้องการให้ scroll ไปที่ตำแหน่งของ id ที่ต้องการ เราสามารถต่อท้ายด้วย `#` เพื่อเชื่อมหรือส่งผ่าน hash link เข้าไปให้ href prop เราสามารถใช้ได้กับ `<Link>` ในการ render ไปให้ `<a>` element
 
-```
+```tsx showLineNumbers
 <Link href="/dashboard#setting">Setting</Link>
 
 // Output
@@ -110,20 +106,20 @@ export function Links(){
 ค่าตั้งต้นของ App Router ใน Next.js คือ scroll to top ของ route ใหม่ หรือ อยู่ที่ตำแหน่งเดิมสำหรับ การย้อนกลับ และ การนำทางไปข้างหน้า
 ถ้าเราต้องการตั้งค่าใหม่เราสามารถทำได้โดยตั้งค่า `scroll={false}` ใน `<Link>` component หรือ `scroll:false` ไปให้ `router.push()` หรือ router.replace()`
 
-```
+```tsx showLineNumbers
 // next/link
 <Link href="/dashboard" scroll={false}>
-    Dashboard
+  Dashboard
 </Link>
 ```
 
-```
+```tsx showLineNumbers
 // useRouter
-import { useRouter } from 'next/navigation'
+import { useRouter } from "next/navigation";
 
-const router = useRouter()
+const router = useRouter();
 
-router.push('/dashboard', { scroll: false })
+router.push("/dashboard", { scroll: false });
 ```
 
 ## `useRouter()` Hook
@@ -133,7 +129,7 @@ router.push('/dashboard', { scroll: false })
 `useRouter` นี้ใช้ได้เฉพาะใน `use client` เท่านั้น และเราต้อง `import from next/navigation`
 `app/page.js`
 
-```
+```tsx showLineNumbers filename="app/page.js"
 'use client'
 
 import { useRouter } from 'next/navigation'

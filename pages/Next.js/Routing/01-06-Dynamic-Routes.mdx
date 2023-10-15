@@ -18,11 +18,10 @@ Dynamic Segment เป็นการส่งค่า `params` prop ไปใ�
 ## ตัวอย่าง
 
 ตอนนี้เราจะยกตัวอย่างในการใช้ เช่น เราสามารถใส่ dynamic route ให้กับ blog ได้ตามรูปแบบนี้ `app/blog/[slug]/page.js` ในที่นี้ [slug] ทำหน้าที่เป็น Dynamic Segment สำหรับ `blog`
-`app/blog/[slug]/page.tsx`
 
-```
-export default function Page({ params }:{ params:{ slug:string } }){
-  return <div>My Post: {params.slug}</div>
+```tsx showLineNumbers filename="app/blog/[slug]/page.tsx"
+export default function Page({ params }: { params: { slug: string } }) {
+  return <div>My Post: {params.slug}</div>;
 }
 ```
 
@@ -59,15 +58,14 @@ export default function Page({ params }:{ params:{ slug:string } }){
 ## การสร้าง Static Params (Generating Static Params)
 
 ฟังก์ชัน `generateStaticParams` ศามารถใช้ร่วมกับ dynamic routes regments เพื่อสร้าง static generate routes ในขณะ build time แทนการสร้างเมื่อถูก request
-`app/blog/[slug]/page.tsx`
 
-```
+```tsx showLineNumbers filename="app/blog/[slug]/page.tsx"
 export async function generateStaticParams() {
-  const posts = await fetch('https://.../posts').then((res) => res.json())
+  const posts = await fetch("https://.../posts").then((res) => res.json());
 
   return posts.map((post) => ({
     slug: post.slug,
-  }))
+  }));
 }
 ```
 
@@ -153,11 +151,10 @@ DCatch-all Segments ยังสามารถสร้างทางเลื
 ## TypeScript
 
 เมื่อเราใช้ TypeScript เราจะสามารถเพิ่ม type สำหรับ params ได้ ขึ้นอยู่กับการตั้งค่าให้กับ route segment
-`app/blog/[slug]/page.tsx`
 
-```
-export default function Page({ params }:{params:{ slug:string }}){
-  return <h1>My Page</h1>
+```tsx showLineNumbers filename="app/blog/[slug]/page.tsx"
+export default function Page({ params }: { params: { slug: string } }) {
+  return <h1>My Page</h1>;
 }
 ```
 
