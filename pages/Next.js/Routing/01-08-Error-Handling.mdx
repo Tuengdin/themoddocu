@@ -61,15 +61,93 @@ export default function Error({
 
 ## Recovering From errors
 
+ในบางครั้งสาเหตุของการเกิด error อาจจะเป็นเรื่องชั่วคราว ในกรณีแบบนี้เราแค่ทำการ refresh อีกครั้ง error ก็จะหายไป
+
+เราสามารถใช้ฟังก์ชัน `reset()` ในการแก้ไข error ให้กับ user ได้ โดยฟังก์ชันนี้จะทำการ render ในส่วนที่เกิด error ใหม่อีกครั้ง ถ้าทำสำเร็จ คือ ไม่เกิด error อีก จะทำการส่งผลการ render นั้นเข้าไปแทนที่ส่วนที่เกิด error เดิม
+
+```tsx showLineNumbers filename="app/dashboard.error.tsx"
+"use client";
+
+export default function Error({
+  error,
+  reset,
+}: {
+  error: Error & { digest?: string };
+  reset: () => void;
+}) {
+  return (
+    <div>
+      <h2>Something went wrong!</h2>
+      <button onClick={() => reset()}>Try again</button>
+    </div>
+  );
+}
+```
+
 ## Nested Routes
 
+React component ถูกสร้างผ่านไฟล์พิเศษ ที่ถูก render จากผังโครงสร้างเว็บเฉพาะ(specified nested hierachy)
+
+ตัวอย่างของ nested route ที่มี 2 segment โดยที่ทั้ง 2 segments นี้มี layout.js และ error.js ทั้งคู่ การ render จะเป็นไปตามผังโครงสร้างนี้
+
 ![](/01-08-img/nested-error-component-hierarchy.avif)
+error.js จะมีการทำงานใน nested route ดังแสดงในภาพข้างล่างนี้
+
+- จุดที่เกิด error จะอยู่ภายใต้ parent ที่ใกล้ที่สุด หมายความว่าไฟล์ error.js จะจัดการ error ทั้งหมดของ child segment ของมัน โดยจะแสดงเนื้อหา UI จากไฟล์ error.js ในสถานการณ์ต่างๆที่เกิดขึ้นใน nested folder ของ route นั้น
+- error.js จะไม่จัดการ error ที่เกิดขึ้นใน layout ที่อยู่ใน segmment เดียวกัน เพราะว่า ขอบเขตของ error นั้นอยู่ใน layout component
 
 ## Handling Error in Layouts
 
+error.js จะไม่จัดการ error ที่เกิดขึ้นใน layout ที่อยู่ใน segmment หรือ template.js เดียวกัน เพราะว่า ขอบเขตของ error นั้นอยู่ใน layout component นี่เป็นความตั้งใจเพื่อรักษา UI ที่สำคัญที่ใช้ร่วมกันระหว่าง route เช่น Navigation
+
+เพื่อที่จะจัดการ error ลักษณะนี้ เราจะวางไฟล์ error.js ไว้ใน layout ของ parent segment
+
+หากเราต้องการจัดการ error ของ root layout หรือ template เราจะใช้ global-error.js
+
 ## Handling Errors in the Root Layouts
 
+ใน root ไฟล์ app/error.js จะไม่สามารถจัดการ error ที่เกิดขึ้นใน component ของ app/layout.js หรือ app/template.js
+
+ใน root component มีวิธีการจัดการ error เฉพาะ คือ ใช้ app/global-error.js ที่อยู่ใน root ของ app directory
+
+การทำงานของ global-error.js ไม่เหมือนกับการทำงานของ error.js เพราะว่า global-error.js จะครอบคลุมทั้งหมดของ app และ เมื่อ fallback component ของ global-error.js ทำงาน จะไปแทนที่ root layout ซึ่งจะต้องมีการระบุ `<html>` และ `<body>`
+
+แม้ว่าจะมีการกำหนด global-error.js ไว้แล้ว Next.js ก็ยังแนะนำให้สร้างไฟล์ error.js ใน root ซึ่งถูกเรียกให้แสดงผลภายใน layout ของ root ซึ่งรวมถึง UI ที่แชร์แบบ global และ branding
+
+```tsx showLineNumbers filename="app/global-error.tsx"
+"use client";
+
+export default function GlobalError({
+  error,
+  reset,
+}: {
+  error: Error & { digest?: string };
+  reset: () => void;
+}) {
+  return (
+    <html>
+      <body>
+        <h2>Something went wrong!</h2>
+        <button onClick={() => reset()}>Try again</button>
+      </body>
+    </html>
+  );
+}
+```
+
 ## Handling Server Errors
+
+ถ้าเกิด error ขึ้นภายใน Server Component ตัว Next.js จะส่ง Error object (stripped of sensitive error information in production) ไปให้ error.js ที่อยู่ใกล้ที่สุด เหมือน error prop
+
+### Securing Sensitive Error information
+
+ในระหว่าง production ตัว error object จะถูกส่งไปที่ client จะประกอบไปด้วย `message` และ `digest`
+
+การทำแบบนี้เพื่อเป็นการป้องกัน การ leak ที่จะเกิดขึ้นในฝั่ง client
+
+`message` เป็นข้อความทั่วไปเกี่ยวกับ error และ `digest` จะสร้าง hash ของ error โดยอัตโนมัติ ซึ่งจะตรงกับ error ที่เก็บไว้ใน sever-side LoadingSkeleton
+
+ในระหว่างช่วง development `error` จะถูกส่งให้ client จะเป็นแบบ serealized และ มี `message` ของ error ต้นฉบับ อยู่ในนั้นด้วย เพื่อให้ง่ายต่อการ debugging
 
 <hr />
 
@@ -81,8 +159,3 @@ export default function Error({
 แปลและเรียบเรียงโดย ModTdin
 
 Original: [Error Handling](https://nextjs.org/docs/app/building-your-application/routing/error-handling)
-
-<hr />
-[01-07-Loading-UI-and-Streaming](https://themodcoding.vercel.app/blogs/01-07-Loading-UI-and-Streaming)
-
-[**Home**](/)
