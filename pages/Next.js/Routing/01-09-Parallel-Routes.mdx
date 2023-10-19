@@ -1,0 +1,195 @@
+---
+title: 01-09 Parallel Routes
+description: การทำงานแบบ Parallel Routes ใน App Router ของ Next.js
+---
+
+# 01-09 Parallel Routes
+
+การทำงานแบบ Parallel Routes จะทำให้เราสามารถ render หน้าเพจได้พร้อมๆกันหลายๆ หน้า ใน layout เดียวกัน สำหรับในส่วนที่เป็น Dynamic มากๆ ของแอพพลิเคชัน เช่น Dashboards หรือ การ feed ของ social site จะใช้ Parallel Routing กับ รูปแบบ routing ที่ซับซ้อนในการทำงาน
+
+ตัวอย่างในภาพ เราสามารถจะ render หน้า team และ analytics ได้พร้อมๆกัน
+![](/01-09-img/parallel-routes.avif)
+ในการทำ Parallel Routing นี้ เราสามารถระบุ error และ loading แยกกันของแต่ละ route ได้ และจะถูก streamed แยกกัน
+![](/01-09-img/parallel-routes-cinematic-universe.avif)
+และ Parallel Routing ยังทำให้เราสามารถกำหนดเงื่อนไขการ render ในแต่ละเงื่อนไขได้ เช่น การทำ authentication การทำแบบนี้จะทำให้เราแยกโค้ดของแต่ละ condition ออกจากกันได้โดยยังใช้ URL เดียวกัน
+![](/01-09-img/conditional-routes-ui.avif)
+
+## ข้อกำหนด (Convention)
+
+เราสามารถสร้าง Parallel Route โดยใช้ชื่อ slot ซึ่ง slot จะถูกกำหนดในรูปแบบของ @folder และส่งเป็น prop ให้กับ layout ใน level เดียวกัน
+
+> Slot ไม่ใช่ route segment และ ไม่มีผลต่อโครงสร้าง URL เช่น `/@team/members` จะใช้แค่ `/members` ในการระบุ URL
+
+ภาพต่อไปนี้จะแสดงตัวอย่างของโครงสร้างไฟล์ที่มี slot 2 slot คือ `@analytics` และ `@team`
+![](/01-09-img/parallel-routes-file-system.avif)
+จากโครงสร้าง folder ข้างบน หมายความว่า component ใน `app/layout.js` มี slot ชื่อ `@analytics` และ `@team` และสามารถ render ทั้งสอง slot นี้แบบ children prop ได้พร้อมๆกัน
+
+```tsx showLineNumbers filename="app/layout.tsx"
+export default function Layout(prop: {
+  children: React.ReactNode;
+  analytics: React.ReactNode;
+  team: React.ReactNode;
+}) {
+  return (
+    <>
+      {props.children}
+      {props.team}
+      {props.analytics}
+    </>
+  );
+}
+```
+
+> **สิ่งที่ควรรู้:** เราไม่ต้องระบุ ชื่อ slot ของ `children` prop ในการระบุเส้นทาง เช่น `app/page.js` จะเท่ากับ `app/@children/page.js`
+
+<hr />
+### Unmatched Routes
+
+ค่าเริ่มต้นที่ Next.js กำหนดไว้ในการ render เนื้อหาใน slot คือ URL ปัจจุบัน
+
+ในกรณีที่เป็น unmatched slot ตัว Next.js จะทำการ render ด้วยวิธีการที่ต่างกันโดยใช้เทคนิคของ routing และ โครงสร้างโฟลเดอร์
+
+### `default.js`
+
+เราสามารถกำหนดไฟล์ `default.js` เพื่อให้ render เมื่อมีการ fallback ในกรณีที่ไม่สามารถจัดการกับ slot ที่ทำงานกับ condition ของ URL ปัจจุบันได้
+
+หากดูโครงสร้างโฟลเดอร์ของตัวอย่างในภาพข้างล่าง จะเห็นว่า slot ชื่อ @team จะมีไดเรกทอรี `setting` แต่ใน `@analytics` ไม่มี
+![](/01-09-img/parallel-routes-unmatched-routes.avif)
+
+### Navigation
+
+ในการทำ Navigation ตัว Next.js จะ render slot ที่ใช้งานก่อนหน้านี้ แม้ว่าจะไม่ตรงกับ URL ปัจจุบันก็ตาม
+
+### reload
+
+ในการ reload ตัว Next.js จะพยายาม render ไฟล์ `default.js`ใน slot ที่ unmatched ก่อน ถ้าไม่สามารถทำได้ หน้า 404 จะถูก render แทน
+
+> 404 สำหรับ unmatched routes จะช่วยให้เรามั่นใจว่า จะไม่เกิดความเสียหายจากการ render route ที่ไม่สามารถทำ parallel render ได้
+
+<hr />
+### `useSelectedLayoutSegment(s)`
+
+ทั้ง `useSelectedLayoutSegment` และ `useSelectedLayoutSegments` จะรับค่าจาก `parallelRoutesKey` ซึ่งจะทำให้เราสามารถอ่าน active route segment ใน slot นั้นได้
+
+```tsx showLineNumbers filename="app/layout.tsx"
+"use client";
+
+import { useSelectedLayoutSegment } from "next/navigation";
+
+export default async function Layout(props: {
+  // ...
+  auth: React.ReactNode;
+}) {
+  const loginSegments = useSelectedLAlyoutSegment("auth");
+  // ...
+}
+```
+
+เมื่อ user ใช้ `@auth/login` หรือ `/login` ใน URL bar ตัว `loginSegments` จะมีค่าเท่ากับ string "login"
+
+<hr />
+### Examples
+
+### Modals
+
+Parallel Routing จะถูกใช้ใน render modal
+![](/01-09-img/parallel-routes-auth-modal.avif)
+ตัว slot `@auth` จะทำการ render `<Modal>` component ซึ่งจะทำให้สามารถแสดงการนำทางเพื่อที่จะ matching route ได้ เช่น `/login`
+
+```tsx showLineNumbers filename="app/layout.tsx"
+export default async function Layout(props: {
+  // ...
+  auth: React.ReactNode;
+}) {
+  <>
+    {/*...*/}
+    {props.auth}
+  </>;
+}
+```
+
+```tsx showLineNumbers filename="app/@auth/login/page.tsx"
+import { Modal } from 'components/modal'
+
+export default function Login() {
+  return (
+    <Modal>
+
+  )
+}
+```
+
+เพื่อให้แน่ใจว่า content ของ Modal นั้นจะไม่ถูก render เมื่อมันไม่ active เราสามารถสร้างไฟล์ `default.js` ให้ return `null` ออกมา
+
+```tsx showLineNumbers filename="app/@auth/default.tsx"
+export default function Default() {
+  return null;
+}
+```
+
+### Dismissing a modal
+
+ถ้า modal ถูกเรียกให้ทำงานผ่าน client navigation ตัวอย่างเช่น เรียกให้ทำงานผ่าน `<Link href="/login">` เราสามารถทำ dismiss โดยเรียก `router.back()` หรือ โดยการใช้ `Link` component
+
+```tsx showLineNumbers filename="app/@auth/login/page.tsx"
+"use client";
+
+import { useRouter } from "next/navigation";
+import { Modal } from "component/modal";
+
+export default async function Login() {
+  const router = useRouter();
+  return (
+    <Modal>
+      <span onClick={() => router.back()}>Close modal</span>
+      <h1>Login</h1>
+      ...
+    </Modal>
+  );
+}
+```
+
+> สามารถดูข้อมูลเกี่ยวกับ modals เพิ่มเติมได้ใน Intercepting Routes
+
+ถ้าเราต้องการให้นำทางไปที่ต่างๆและใช้ dismiss a modal เราสามารถทำได้โดยใช้ `catch-all` route
+![](/01-09-img/parallel-routes-catchall.avif)
+
+```tsx showLineNumbers filename="app/@auth/[...catchAll]/page.tsx"
+export default function CatchAll() {
+  return null;
+}
+```
+
+> การทำ Catch-all routes จะมีลำดับความสำคัญสูงกว่า default.js
+
+### Conditional Routes
+
+Parallel Routes จะถูกใช้งานบนการกำหนดเงื่อนไขให้กับ routing ตัวอย่างเช่น เราสามารถ render slot ชื่อ `@dashboard` หรือ `@login` ขึ้นอยู่กับสถานะของการทำ authentigation
+
+```tsx showLineNumbers filename="app/layout.tsx"
+import { getUser } from "@/lib/auth";
+
+export default function Layout({
+  dashboard,
+  login,
+}: {
+  dashboard: React.ReactNode;
+  login: React.ReactNode;
+}) {
+  const isLoggedIn = getUser();
+  return isLoggedIn ? dashboard : login;
+}
+```
+
+![](/01-09-img/conditional-routes-ui.avif)
+
+<hr />
+
+## Next Steps
+
+ต่อไปเราจะไปเรียนรู้เกี่ยวกับ Intercepting Routes กัน
+
+<hr />
+แปลและเรียบเรียงโดย ModTdin
+
+Original: [Parallel Routes](https://nextjs.org/docs/app/building-your-application/routing/parallel-routes)
