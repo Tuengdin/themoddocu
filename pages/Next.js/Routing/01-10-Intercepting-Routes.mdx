@@ -1,0 +1,62 @@
+---
+title: 01-10 Intercepting Routes
+description: การทำงานแบบ Intercepting Routes ใน App Router ของ Next.js
+---
+
+# 01-10 Intercepting Routes
+
+Intercepting Routes ทำให้เราสามารถ load route ที่อยู่ในส่วนอื่นๆของแอพพลิเคชันเข้ามาใน layout ปัจจุบันได้ แนวคิดนี้เป็นประโยชน์มากเมื่อเราต้องการแสดงเนื้อหาของ route โดยที่ user ไม่ต้องเปลี่ยนแปลงอะไร
+
+ตัวอย่างเช่น เมื่อเรา clicke ที่รูปภาพใน feed เราจะแสดง photo ของ modal นั้นบนหน้า feed ในกรณีนี้ Next.js จะทำการ intercepts route `/photo/123` เพื่อให้เป็นหน้ากากของ URL นั้นและแสดงทับชั้นบนสุดของ `/feed`
+![](/01-10-img/intercepting-routes-soft-navigate.avif)
+แต่ว่า ถ้าเรา click ที่ shareable URL ของรูปหรือ refresh หน้าเพจนั้น รูปนั้นจะถูก render แทน modal จะไม่เกิด route intercept
+![](/01-10-img/intercepting-routes-hard-navigate.avif)
+
+<hr />
+### ข้อกำหนด (Convention)
+
+เราสามารถกำหนด Interception ได้โดยการใช้ (..) ซึ่งจะเหมือนกับ relative path `../` แต่ว่าสำหรับ segment
+
+วิธีใช้
+
+- (.) แทน segment ที่อยู่ในระดับเดียวกัน
+- (..) แทน sagment ที่อยู่เหนือกว่า 1 ระดับ
+- (..)(..) ใช้แทน segment ที่อยู่เหนือกว่า 2 ระดับ
+- (...) แทน segment จาก root ของ app directory
+
+ตัวอย่างเช่น เราสามารถ intercept `photo` segment จากใน `feed` segment ด้วยการสร้างได้เรกทอรี `(..)photo`
+![](/01-10-img/intercepted-routes-files.avif)
+
+> หมายเหตุ เราจะใช้ (..) เฉพาะบน route segment ไม่ใช่บน file-system
+
+<hr />
+### ตัวอย่างของ
+
+### Modals
+
+เราสามารถใช้ Intercepting ร่วมกับ Parallel Routes ในการสร้าง modals
+
+ลำดับการสร้าง modals จะทำตามขั้นตอน ดังนี้
+
+- สร้าง modal content ให้สามารถแชร์ผ่าน URL ได้
+- Preserve context เมื่อเรา refresh page แทนที่จะปิด modal
+- Close the modal on backward navigation แทน previous route
+- Reopen the modal on forwards navigation
+  ![](/01-10-img/intercepted-routes-modal-example.avif)
+
+> จากตัวอย่างข้างบน path ของ `photo` segment สามารถใช้ (..) มาจับคู่ได้ เพราะว่า `@modal` เป็น slot ไม่ใช่ segment หมายความว่า `photo` route อยู่ขึ้นไปหนึ่งระดับของ segment ในขณะที่ อยู่สูงขึ้นไป 2 ระดับใน file-system
+
+อีกตัวอย่างหนึ่ง เราสามารถใส่เข้าไปใน opening a login modal บน navbar ชั้นบนสุด ซึ่งมี `/login` page หรือ opening a shopping cart ใน side modal
+
+ดูตัวอย่างของ modals ที่เกี่ยวกับ Intercepted และ Parallel Routes ได้ที่ https://github.com/vercel-labs/nextgram
+
+<hr />
+
+## Next Steps
+
+ต่อไปเราจะไปเรียนรู้เกี่ยวกับ Route Handlers กัน
+
+<hr />
+แปลและเรียบเรียงโดย ModTdin
+
+Original: [Intercepting Routes](https://nextjs.org/docs/app/building-your-application/routing/intercepting-routes)
