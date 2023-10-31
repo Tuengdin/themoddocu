@@ -1,7 +1,14 @@
 {
-  "index": "Introduction",
-  "home": {
-    "title": "back to TheModCoding",
+  "index": {
+    "title": "Home",
+    "type": "page"
+  },
+  "Next.js": {
+    "title": "Next.js",
+    "type": "page"
+  },
+  "themodcoding": {
+    "title": "TheModCoding",
     "type": "page",
     "href": "https://themodcoding.vercel.app",
     "newWindow": true

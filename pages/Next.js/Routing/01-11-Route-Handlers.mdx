@@ -1,0 +1,309 @@
+---
+title: 01-11 Route Handlers
+description: การจัดการ Routes (Route Handlers) ใน App Router ของ Next.js
+---
+
+# 01-11 Route Handlers
+
+ในการจัดการ Routes เราสามารถจัดการ request เพื่อใช้กับ Request และ Response API ของ Web ได้
+![](/01-11-img/route-special-file.avif)
+
+> สิ่งที่ควรรู้: การจัดการ Route ใช้ได้เฉพาะใน app directory
+> จะเหมือนกับการทำ API Routes ของ Pages directory เราไม่ต้องใช้ API Routes และ Route Handlers คู่กัน
+
+<hr />
+## ข้อกำหนดการใช้งาน (Convention)
+
+เราจะกำหนด route handlers ไว้ในไฟล์ route.js | ts ข้างใน app directory:
+
+```ts showLineNumbers filename="app/api/route.ts"
+export async function GET(request: Request) {}
+```
+
+Route Handlers สามารถถูกซ้อนข้างใน app directory เหมือนกับ page.js และ layout.js แต่ว่าไม่สามารถสร้างไฟล์ route.js ไว้ใน segment ระดับเดียวกันกับ page.js ได้
+
+## วิธีใช้งานกับ HTTP Methods
+
+methods ของ HTTP ที่สามารถใช้งานได้ คือ GET POST PUT PATCH DELETE HEAD และ OPTIONS แต่ถ้าหาก Next.js ไม่รองรับ method ไหน ก็จะทำการ return `405 Medthod Not Allowed` กับมาเป็น Response
+
+## Extended NextRequest และ NextResponse APIs
+
+์Nexy.js ได้มีการพัฒนาความสามารถของ Request และ Response เดิม ให้มีความสามารถใช้งานเพิ่มขี้น นั่นคือ NextRequest และ NextResponse
+
+<hr />
+### การใช้งาน (Behavior)
+
+### Caching
+
+Route Handlers จะมีค่าเริ่มต้นเป็น cached เมื่อเราใช้เมธอด GET กับ Response object
+
+```ts showLineNumbers filename="app/items/routes.ts"
+export async function GET() {
+  const res = await fetch("https://data.mongodb-api.com/...", {
+    headers: {
+      "Content-Type": "application/json",
+      "API-Key": process.env.Data_API_KEY,
+    },
+  });
+  const data = await res.json();
+
+  return Response.json({ data });
+}
+```
+
+> **คำเตือนสำหรับ TypeScript:** เราสามารถใช้ `Response.json()` ได้เฉพาะ TypeScript 5.2 ขึ้นไปเท่านั้น ถ้าต่ำกว่านี้เราสามารถใช้ `NextResponse.json()` แทน
+
+### Opting out of Caching
+
+เราสามารถเลือกใช้ caching ได้ดังนี้
+
+- ใช้ `GET` method ในการ `Request` object
+- ใช้ HTTP method อื่นๆ
+- ใช้ Dynamic Functions อย่าง `cookies` และ `headers`
+- ใช้ Segment Config Options เพื่อทำการตั้งค่า dynamic mode
+
+ตัวอย่าง เช่น
+
+```ts showLineNumbers filename="app/products/api/rout.ts"
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const id = searchParams.get("id");
+  const res = await fetch("https://data.mongodb-api.com/product/${id}", {
+    header: {
+      "Content-Type": "application/json",
+      "API-Key": process.env.DATA_API_KEY,
+    },
+  });
+  const product = await res.json();
+
+  return Response.json({ product });
+}
+```
+
+สำหรับ method `POST` ก็เหมือนกัน
+
+```ts showLineNumbers filename="app/items/route.ts"
+export async function POST() {
+  const res = await fetch("https://data.mongodb-api.com/...", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "API-Key": process.env.DATA_API_KEY,
+    },
+    body: JSON.stringify({ time: new Date().toISOString() }),
+  });
+  const data = await res.json();
+
+  return Response.json(data);
+}
+```
+
+> สิ่งที่ควรรู้: เราสามารถใช้ Route Handler ได้เหมือนกับ API routes ในการทำ form submission handling และยังมีสามารถทำ handling form and mutations ที่หลอมรวมกับ React ได้ลึกขึ้น
+
+### Route Resolution
+
+เราสามารถพิจารณา `route` ที่ระดับสุดได้ ดังนี้
+
+- มันจะไม่เป็นส่วนหนึ่งของ layout หรือ client-side navigtion เช่น `page`
+- จะไม่สามารถมี route.js ใน route เดียวกันกับ page.js
+
+| Page                 | Route              | Result                         |
+| -------------------- | ------------------ | ------------------------------ |
+| `app/page.js`        | `app/route.js`     | `<Cross size={18} />` Conflict |
+| `app/page.js`        | `app/api/route.js` | `<Check size={18} />` Valid    |
+| `app/[user]/page.js` | `app/api/route.js` | `<Check size={18} />` Valid    |
+
+### URL Query Parameters
+
+The request object passed to the Route Handler is a `NextRequest` instance, which has [some additional convenience methods](/docs/app/api-reference/functions/next-request#nexturl), including for more easily handling query parameters.
+
+```ts filename="app/api/search/route.ts" switcher
+import { type NextRequest } from "next/server";
+
+export function GET(request: NextRequest) {
+  const searchParams = request.nextUrl.searchParams;
+  const query = searchParams.get("query");
+  // query is "hello" for /api/search?query=hello
+}
+```
+
+### Streaming
+
+Streaming is commonly used in combination with Large Language Models (LLMs), such as OpenAI, for AI-generated content. Learn more about the [AI SDK](https://sdk.vercel.ai/docs).
+
+```ts filename="app/api/chat/route.ts" switcher
+import { Configuration, OpenAIApi } from "openai-edge";
+import { OpenAIStream, StreamingTextResponse } from "ai";
+
+export const runtime = "edge";
+
+const apiConfig = new Configuration({
+  apiKey: process.env.OPENAI_API_KEY!,
+});
+
+const openai = new OpenAIApi(apiConfig);
+
+export async function POST(req: Request) {
+  // Extract the `messages` from the body of the request
+  const { messages } = await req.json();
+
+  // Request the OpenAI API for the response based on the prompt
+  const response = await openai.createChatCompletion({
+    model: "gpt-3.5-turbo",
+    stream: true,
+    messages: messages,
+    max_tokens: 500,
+    temperature: 0.7,
+    top_p: 1,
+    frequency_penalty: 1,
+    presence_penalty: 1,
+  });
+
+  // Convert the response into a friendly text-stream
+  const stream = OpenAIStream(response);
+
+  // Respond with the stream
+  return new StreamingTextResponse(stream);
+}
+```
+
+These abstractions use the Web APIs to create a stream. You can also use the underlying Web APIs directly.
+
+```ts filename="app/api/route.ts" switcher
+// https://developer.mozilla.org/docs/Web/API/ReadableStream#convert_async_iterator_to_stream
+function iteratorToStream(iterator: any) {
+  return new ReadableStream({
+    async pull(controller) {
+      const { value, done } = await iterator.next();
+
+      if (done) {
+        controller.close();
+      } else {
+        controller.enqueue(value);
+      }
+    },
+  });
+}
+
+function sleep(time: number) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, time);
+  });
+}
+
+const encoder = new TextEncoder();
+
+async function* makeIterator() {
+  yield encoder.encode("<p>One</p>");
+  await sleep(200);
+  yield encoder.encode("<p>Two</p>");
+  await sleep(200);
+  yield encoder.encode("<p>Three</p>");
+}
+
+export async function GET() {
+  const iterator = makeIterator();
+  const stream = iteratorToStream(iterator);
+
+  return new Response(stream);
+}
+```
+
+### Request Body
+
+You can read the `Request` body using the standard Web API methods:
+
+```ts filename="app/items/route.ts" switcher
+export async function POST(request: Request) {
+  const res = await request.json();
+  return Response.json({ res });
+}
+```
+
+### Request Body FormData
+
+You can read the `FormData` using the `request.formData()` function:
+
+```ts filename="app/items/route.ts" switcher
+export async function POST(request: Request) {
+  const formData = await request.formData();
+  const name = formData.get("name");
+  const email = formData.get("email");
+  return Response.json({ name, email });
+}
+```
+
+Since `formData` data are all strings, you may want to use [`zod-form-data`](https://www.npmjs.com/zod-form-data) to validate the request and retrieve data in the format you prefer (e.g. `number`).
+
+### CORS
+
+You can set CORS headers on a `Response` using the standard Web API methods:
+
+```ts filename="app/api/route.ts" switcher
+export async function GET(request: Request) {
+  return new Response("Hello, Next.js!", {
+    status: 200,
+    headers: {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    },
+  });
+}
+```
+
+### Edge and Node.js Runtimes
+
+Route Handlers have an isomorphic Web API to support both Edge and Node.js runtimes seamlessly, including support for streaming. Since Route Handlers use the same [route segment configuration](/docs/app/api-reference/file-conventions/route-segment-config) as Pages and Layouts, they support long-awaited features like general-purpose [statically regenerated](/docs/app/building-your-application/data-fetching/fetching-caching-and-revalidating#revalidating-data) Route Handlers.
+
+You can use the `runtime` segment config option to specify the runtime:
+
+```ts
+export const runtime = "edge"; // 'nodejs' is the default
+```
+
+### Non-UI Responses
+
+You can use Route Handlers to return non-UI content. Note that [`sitemap.xml`](/docs/app/api-reference/file-conventions/metadata/sitemap#generate-a-sitemap), [`robots.txt`](/docs/app/api-reference/file-conventions/metadata/robots#generate-a-robots-file), [`app icons`](/docs/app/api-reference/file-conventions/metadata/app-icons#generate-icons-using-code-js-ts-tsx), and [open graph images](/docs/app/api-reference/file-conventions/metadata/opengraph-image) all have built-in support.
+
+```ts filename="app/rss.xml/route.ts" switcher
+export async function GET() {
+  return new Response(`<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0">
+
+<channel>
+  <title>Next.js Documentation</title>
+  <link>https://nextjs.org/docs</link>
+  <description>The React Framework for the Web</description>
+</channel>
+
+</rss>`);
+}
+```
+
+### Segment Config Options
+
+Route Handlers use the same [route segment configuration](/docs/app/api-reference/file-conventions/route-segment-config) as pages and layouts.
+
+```ts filename="app/items/route.ts" switcher
+export const dynamic = "auto";
+export const dynamicParams = true;
+export const revalidate = false;
+export const fetchCache = "auto";
+export const runtime = "nodejs";
+export const preferredRegion = "auto";
+```
+
+See the [API reference](/docs/app/api-reference/file-conventions/route-segment-config) for more details.
+(จะทำการ update เนื้อหาต่อไป)
+
+<hr />
+
+## Next Steps
+
+ต่อไปเราจะไปเรียนรู้เกี่ยวกับ Middleware กัน
+
+<hr />
+แปลและเรียบเรียงโดย ModTdin
+
+Original: [Intercepting Routes](https://nextjs.org/docs/app/building-your-application/routing/route-handlers)
