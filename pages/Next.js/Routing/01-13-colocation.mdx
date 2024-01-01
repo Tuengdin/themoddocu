@@ -1,0 +1,118 @@
+---
+title: 01-13 Project Organization and File Colocation
+description: Learn how to organize your Next.js project and colocate files.
+---
+
+จากหัวข้อ [routing folder and file conventions](/docs/getting-started/project-structure#app-routing-conventions), Next.js ยังไม่มีความเห็นเกี่ยวกับวิธีที่จะวางโครงสร้างและการจัดระเบียบไฟล์ในโปรเจกของคุณ.
+
+ในบทนี้เราจะมาแบ่งปันการจัดโครงสร้างของโปรเจกกัน ตามหัวข้อต่อไปนี้
+
+- [Safe colocation by default](#safe-colocation-by-default)
+- [Project organization features](#project-organization-features)
+- [Project organization strategies](#project-organization-strategies)
+
+## Safe colocation by default
+
+วางไฟล์ในตำแหน่งต่างๆมีความปลอดภัยตั้งแต่เริ่มต้น ใน `app` directory จะกำหนดโครงสร้าง route โดย [ลำดับการวาง folder : nested folder hierarchy](/docs/app/building-your-application/routing#route-segments).
+
+ในแต่ละ folder จะเป็นตัวแทน route segment ของ URL path.
+
+ถึงแม้ว่า URL path จะถูกกำหนดผ่าน Folder แล้ว แต่ก็ยัง **ไม่สามารถเข้าถึงได้จากภายนอก** จนกว่าจะถูกกำหนดในไฟล์ `page.js` หรือ `route.js`
+
+![](/01-13-img/project-organization-not-routable.avif)
+
+และแม้ว่า URL Path นั้นจะถูกกำหนดให้สามารถเข้าถึงได้จากภายนอกแล้ว จะมีเฉพาะ **เนื้อหาที่เรากำหนดให้ returned** โดย `page.js` หรือ `route.js` เท่านั้น ที่ถูกส่งไปให้ client
+
+![](/01-13-img/project-organization-routable.avif)
+
+หมายความว่า **ไฟล์ต่างๆใน Project** จะอยู่ **ในพื้นที่ปลอดภัย : safely colocated** ข้างใน route segments ของ `app` directory โดยไม่ต้องกังวลว่าจะถูกเข้าถึงจากภายนอกโดยไม่ตั้งใจ
+
+![](/01-13-img/project-organization-colocation.avif)
+
+> **สิ่งที่ควรรู้**:
+>
+> - ในส่วนนี้ `pages` directory จะถือว่าไฟล์ทุกไฟล์ที่อยู่ใน `pages` เป็น route ที่เข้าถึงจากภายนอกได้ จุดนี้จึงเป็นข้อแตกต่างระหว่าง 'app' directory กับ 'pages directory
+> - ถึงแม้ว่าคุณจะ **สามารถ** วางไฟล์ของคุณใน `app` ได้ แต่ไม่ได้เป็นข้อบังคับให้คุณต้องทำแบบนั้นเสมอไป หากคุณต้องการ [เก็บไฟล์ไว้นอก `app` directory](#store-project-files-outside-of-app) ก็สามารถทำได้
+
+## Project organization features
+
+Next.js มีตัวช่วยในการจัดระเบียบโครงสร้าง project ของคุณ ดังหัวข้อที่่จะกล่าวต่อไปนี้
+
+### Private Folders
+
+การกำหนดให้เป็น Folder แบบ private เราสามารถทำได้โดยการใส่เครื่องหมาย underscore หน้าชื่อ Folder แบบนี้ : `_folderName`
+
+การทำแบบนี้จะเป็นการบอกกับ ระบบ route ของ Next.js ว่าเรา**ไม่ต้องการ** ให้นำ **folder และ subfolders ทั้งหมดที่อยู่ใน folder นี้** มากำหนดเป็น route
+![](/01-13-img/project-organization-private-folders.avif)
+
+เพราะว่าไฟล์ใน `app` directory [มีความปลอดภัยตามค่าเริ่มต้น](#safe-colocation-by-default) อยู่แล้ว จึงไม่จำเป็นต้องทำเป็น private folders แต่การทำ private folder นี้จะนำไปในประโยชน์กับประเด็นต่อไปนี้:
+
+- การแยกเก็บไฟล์ระหว่างไฟล์ที่ใช้กับ UI logic กับไฟล์ที่ใช้กับ routing logic.
+- การจัดระเบียบไฟล์ในเพื่อใช้ระหว่างโปรเจกของ Next.js.
+- การเรียงลำดับไฟล์ และ การจัดกลุ่มเพื่อให้ดูง่ายใน code editors.
+- ป้องกันการซ้ำกันของชื่อไฟล์ที่ Next.js จะกำหนดเพิ่มเติมในอนาคต
+
+> **สิ่งที่ควรรู้**
+>
+> - แม้ว่าจะไม่ใช่ข้อบังคับ แต่เราก็อาจจะใช้การตั้งชื่อแบบ private นี้กับ folder ที่อยู่นอกกับ folder อื่นๆที่ไม่ใช่ private ได้
+> - เราสามารถสร้าง URL segments ที่ขึ้นต้นด้วย underscore ได้โดยใส่เครื่องหมาย `%5F` (the URL-encoded form of an underscore) นำหน้าชื่อ folder ตามนี้: `%5FfolderName`.
+> - ถ้าเราไม่ได้ใช้ private folder ของ Next.js แต่ก็เป็นประโยชน์ที่จะรู้เกี่ยวกับ [special file conventions](/docs/getting-started/project-structure#routing-files) เพื่อป้องกันการเกิดปัญหาเกี่ยวข้องกับการตั้งชื่อโดยไม่คาดคิด
+
+### Route Groups : การจัดกลุ่มของ Route
+
+เราสามารถใช้เครื่องหมายวงเล็บ ครอบชื่อ folder ที่เราต้องการจัดกลุ่มได้ ตามตัวอย่างนี้ : `(folderName)`
+
+การทำแบบนี้มีจุดประสงค์เพื่อจัดโครงสร้างของ project เท่านั้น ชื่อกลุ่ม folder นี้ **จะไม่ถูกรวม** เข้าไปใน URL path ของ route นั้น
+
+![](/01-13-img/project-organization-route-groups.avif)
+
+การจัดกลุ่ม Route ใช้ประโยชน์สำหรับ :
+
+- [จัดการ routes ให้เป็นกลุ่ม](/docs/app/building-your-application/routing/route-groups#organize-routes-without-affecting-the-url-path) เช่น แบ่งส่วนตามองค์ประกอบของ site แบ่งตามวัตถุประสงค์การทำงาน หรือแบ่งตามทีมทำงาน
+- ทำให้เราทำงานโดยใช้ nested layouts ที่ route segment ระดับเดียวกันได้ :
+  - [การสร้าง nested layouts หลายระดับใน segment เดียวกัน รวมถึงการทำ multiple root layouts](/docs/app/building-your-application/routing/route-groups#creating-multiple-root-layouts)
+  - [เพิ่ม layout ให้ subset of routes ที่ใช้ segment ร่วมกัน](/docs/app/building-your-application/routing/route-groups#opting-specific-segments-into-a-layout)
+
+### `src` Directory
+
+Next.js รองรับการเลือกเก็บไฟล์ code (including `app`) ใน [`src` directory](/docs/app/building-your-application/configuring/src-directory) หมายถึง การแยก application code ออกจาก project configuration files
+
+![](/01-13-img/project-organization-src-directory.avif)
+
+### Module Path Aliases : การตั้งชื่อใหม่เพื่อใช้แทน path
+
+Next.js รองรับ [การตั้งชื่อ path ใหม่ เพื่อใช้แทน path เดิม](/docs/app/building-your-application/configuring/absolute-imports-and-module-aliases) ซึ่งจะทำให้เราอ่านและเรียกใช้ได้ง่ายขึ้นกว่าการเรียกชื่อ path ยาวๆเพราะว่าอยู่ใน ชั้นลึกๆที่ซ้อนกันอยู่หลายชั้น
+
+```jsx filename="app/dashboard/settings/analytics/page.js"
+// before
+import { Button } from "../../../components/button";
+
+// after
+import { Button } from "@/components/button";
+```
+
+## Project organization strategies
+
+การวางโครงสร้างใน Next.js project ไม่มีคำว่า "ถูก" หรือ "ผิด"
+
+ที่สำคัญที่สุดคือ การวางโครงสร้าง Project ที่เหมาะกับคุณและทีมงานของคุณ และสามารถทำงานร่วมกับโปรเจกอื่นๆได้
+
+> **สิ่งที่ควรรู้**: ตัวอย่างข้างล่าง เราใช้ folder ชื่อ `components` และ `lib` ตามรูปแบบทั่วไป ซึ่งไม่มีนัยสำคัญพิเศษกับ framework และเราสามารถใช้ชื่อว่า `ui` `utils` `hooks` `styles` และอื่นๆได้อีกด้วย
+
+### Store project files outside of `app` : การเก็บ file ของ project ไว้ข้างนอก `app`
+
+การทำแบบนี้ทำให้เราเก็บ code ทั้งหมดของ application ไว้ใน **root ของ project** และเก็บไฟล์สำหรับทำ routing โดยเฉพาะไว้ใน `app` directory
+
+![](/01-13-img/project-organization-project-root.avif)
+
+### Store project files in top-level folders inside of `app` : การเก็บ file ของ project ไว้ใน `app` ทั้งหมด
+
+แนวทางนี้ เราจะเก็บไฟล์ทั้งหมดไว้ใน **root ของ `app` directory**.
+
+![](/01-13-img/project-organization-app-root.avif)
+
+### Split project files by feature or route : การแยกเก็บไฟล์ตามลักษณะการทำงานหรือตาม route
+
+แนวทางนี้จะเก็บไฟล์ทั้งหมดไว้ใน `app` directory และ **แยก** เฉพาะ application code ไว้ใน route segments ที่ใช้.
+
+![](/01-13-img/project-organization-app-root-split.avif)
