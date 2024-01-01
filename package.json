@@ -1,7 +1,7 @@
 {
-  "name": "nextra-docs-template",
+  "name": "document-by-modtdin",
   "version": "0.0.1",
-  "description": "Nextra docs template",
+  "description": "Document by ModTdin",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
