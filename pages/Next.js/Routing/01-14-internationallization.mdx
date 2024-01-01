@@ -1,0 +1,152 @@
+---
+title: 01-14 Internationalization
+description: Add support for multiple languages with internationalized routing and localized content.
+---
+
+ใน Next.js เราสามารถกำหนดให้เรียงลำดับ และ render เนื้อหาเพื่อรองรับหลายภาษาได้ ซึ่งทำได้ทั้งเนื้อหา (localization) และ route
+
+## Terminology
+
+- **Locale:** เป็นรหัสสำหรับกำหนดชุดของภาษาและการจัดรูปแบบ รวมถึงภูมิภาคที่อยู่
+  - `en-US`: ภาษาอังกฤษสำหรับผู้ที่อาศัยใน United States
+  - `nl-NL`: ภาษา Dutch ที่ใช้ใน Netherlands
+  - `nl`: ภาษา Dutch ไม่ระบุพื้นที่
+
+## Routing Overview
+
+แนะนำให้ใช้การตั้งค่าภาษาของผู้ใช้ใน browser ซึ่งผู้ใช้ได้กำหนดค่าไว้ การเปลี่ยนภาษาของแอพจะเป็นการแก้ไข `Accept-Language` ใน application ของเรา
+
+ตัวอย่าง code ข้างล่าง เป็นการรับ `Request` ที่เข้ามาเพื่อไปหา locale ที่เลือกจาก `Headers` locales และ default locale ที่เรากำหนดไว้
+
+```js filename="middleware.js"
+import { match } from "@formatjs/intl-localematcher";
+import Negotiator from "negotiator";
+
+let headers = { "accept-language": "en-US,en;q=0.5" };
+let languages = new Negotiator({ headers }).languages();
+let locales = ["en-US", "nl-NL", "nl"];
+let defaultLocale = "en-US";
+
+match(languages, locales, defaultLocale); // -> 'en-US'
+```
+
+การกำหนด Routing ให้สามารถรองรับหลายภาษาได้โดยใส่ sub-path (`/fr/products`) หรือ domain (`my-site.fr/products`) ด้วยการทำอย่างนี้เราสามารถเปลี่ยนเส้นทาง (redirect) นำผู้ใช้ไปยังที่ต่างที่กำหนด locale ไว้ใน [Middleware](/docs/app/building-your-application/routing/middleware).
+
+```js filename="middleware.js"
+
+let locales = ['en-US', 'nl-NL', 'nl']
+
+// Get the preferred locale, similar to the above or using a library
+function getLocale(request) { ... }
+
+export function middleware(request) {
+  // Check if there is any supported locale in the pathname
+  const { pathname } = request.nextUrl
+  const pathnameHasLocale = locales.some(
+    (locale) => pathname.startsWith(`/${locale}/`) || pathname === `/${locale}`
+  )
+
+  if (pathnameHasLocale) return
+
+  // Redirect if there is no locale
+  const locale = getLocale(request)
+  request.nextUrl.pathname = `/${locale}${pathname}`
+  // e.g. incoming request is /products
+  // The new URL is now /en-US/products
+  return Response.redirect(request.nextUrl)
+}
+
+export const config = {
+  matcher: [
+    // Skip all internal paths (_next)
+    '/((?!_next).*)',
+    // Optional: only run on root (/) URL
+    // '/'
+  ],
+}
+```
+
+และขั้นตอนสุดท้าย คือ การตรวจสอบไฟล์ต่างๆใน `app/` ซึ่งมี `app/[lang]` อยู่ข้างใน การทำแบบนี้จะทำให้ Next.js จัดการ router ให้เปลี่ยนไปตาม locales ใน และส่งพารามิเตอร์ `lang` ไปยัง layout and page ดังตัวอย่างต่อไปนี้ :
+
+```jsx filename="app/[lang]/page.js"
+// You now have access to the current locale
+// e.g. /en-US/products -> `lang` is "en-US"
+export default async function Page({ params: { lang } }) {
+  return ...
+}
+```
+
+การทำแบบนี้ทำให้มี folder ใหม่ อยู่ใน root layout ตามตัวอย่าง คือ `app/[lang]/layout.js`
+
+## Localization
+
+การแสดงเนื้อหาตามภาษาที่ผู้ใช้เลือก ไม่ได้มีเฉพาะกับ Next.js เท่านั้น แต่ web application อื่นๆ ก็สามารถทำได้เหมือนกัน
+
+ตัวอย่างต่อไปนี้จะสมมติว่า ใช้ภาษา English และ Dutch เราก็สามารถทำ “dictionaries”ของทั้งสองภาษาขึ้นมา และจับคู่ key เข้ากับ localized string ดังนี้:
+
+```json filename="dictionaries/en.json"
+{
+  "products": {
+    "cart": "Add to Cart"
+  }
+}
+```
+
+```json filename="dictionaries/nl.json"
+{
+  "products": {
+    "cart": "Toevoegen aan Winkelwagen"
+  }
+}
+```
+
+เราสามารถสร้างฟังก์ชัน `getDictionary` เพื่อ load คำแปลตามภาษาที่เลือก :
+
+```jsx filename="app/[lang]/dictionaries.js"
+import "server-only";
+
+const dictionaries = {
+  en: () => import("./dictionaries/en.json").then((module) => module.default),
+  nl: () => import("./dictionaries/nl.json").then((module) => module.default),
+};
+
+export const getDictionary = async (locale) => dictionaries[locale]();
+```
+
+การเลือกภาษาแบบนี้เราสามารถทำการ fetch dictionary ข้างใน layout หรือ page ได้
+
+```jsx filename="app/[lang]/page.js"
+import { getDictionary } from "./dictionaries";
+
+export default async function Page({ params: { lang } }) {
+  const dict = await getDictionary(lang); // en
+  return <button>{dict.products.cart}</button>; // Add to Cart
+}
+```
+
+เพราะว่า layouts และ pages ทั้งหมดอยู่ข้างใน`app/` directory ซึ่งค่าเริ่มต้นกำหนดเป็น [Server Components](/docs/app/building-your-application/rendering/server-components) เราจึงไม่ต้องกังวลเกี่ยวกับขนาดของไฟล์ที่จะมีผลกระทบต่อขนาดของ JavaScript ใน client-side เพราะว่า code เหล่านี้จะ **ทำงานทางฝั่ง server เท่านั้น** และส่งเฉพาะ HTML มาให้ browser.
+
+## Static Generation
+
+ในการสร้าง static routes สำหรับภาษาที่กำหนดไว้ เราสามารถใช้ `generateStaticParams` กับ page หรือ layout ใดๆก็ได้ ซึ่งสามารถทำให้เป็น global ได้ใน root layout ตามตัวอย่าง:
+
+```jsx filename="app/[lang]/layout.js"
+export async function generateStaticParams() {
+  return [{ lang: "en-US" }, { lang: "de" }];
+}
+
+export default function Root({ children, params }) {
+  return (
+    <html lang={params.lang}>
+      <body>{children}</body>
+    </html>
+  );
+}
+```
+
+## Resources
+
+- [Minimal i18n routing and translations](https://github.com/vercel/next.js/tree/canary/examples/app-dir-i18n-routing)
+- [`next-intl`](https://next-intl-docs.vercel.app/docs/next-13)
+- [`next-international`](https://github.com/QuiiBz/next-international)
+- [`next-i18n-router`](https://github.com/i18nexus/next-i18n-router)
