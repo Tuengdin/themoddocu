@@ -1,0 +1,310 @@
+---
+title: Data Fetching, Caching, and Revalidating
+description: Learn how to fetch, cache, and revalidate data in your Next.js application.
+---
+
+# Data Fetching, Caching, and Revalidating
+
+Data fetching หรือการดึงข้อมูล เป็นส่วนสำคัญของทุกๆแอปพลิเคชัน ในบทนี้จะอธิบายถึงวิธีการ ดึงข้อมูล(fetch data) การจัดเก็บข้อมูลในแคช(cache) และการตรวจสอบความถูกต้องของข้อมูล (revalidate data) ใน React and Next.js.
+
+การดึงข้อมูลมีทั้งหมด 4 วิธี คือ
+
+1. [บน server ด้วยการใช้ `fetch`](#fetching-data-on-the-server-with-fetch)
+2. [บน server ด้วยการใช้ libraries ภายนอก](#fetching-data-on-the-server-with-third-party-libraries)
+3. [บน client ผ่าน Route Handler](#fetching-data-on-the-client-with-route-handlers)
+4. [บน client ด้วย libraries ภายนอก](#fetching-data-on-the-client-with-route-handlers)
+
+## Fetching Data on the Server with `fetch`
+
+การดึงข้อมูลบน server ด้วยการใช้ `fetch`
+
+Next.js เราสามารถกำหนดการทำงานของ [`fetch` Web API](https://developer.mozilla.org/docs/Web/API/Fetch_API) เพื่อกำหนดวิธีการเก็บข้อมูลใน [caching](#caching-data) และ [revalidating](#revalidating-data) สำหรับการทำ fetch request แต่ละครั้งบน server แต่ใน React เมื่อ `fetch` ได้ทำการ request จะทำการเก็บข้อมูลโดยอัตโนมัติ [memoize](/docs/app/building-your-application/data-fetching/patterns#fetching-data-where-its-needed) ระหว่างการ render โครงสร้างของ React component
+
+เราสามารถใช้ `fetch` ร่วมกับ `async`/`await` ใน Server Components ใน [Route Handlers](/docs/app/building-your-application/routing/route-handlers) และใน [Server Actions](/docs/app/building-your-application/data-fetching/server-actions-and-mutations) ได้
+
+ตัวอย่าง เช่น
+
+```tsx filename="app/page.tsx" switcher
+async function getData() {
+  const res = await fetch("https://api.example.com/...");
+  // The return value is *not* serialized
+  // You can return Date, Map, Set, etc.
+
+  if (!res.ok) {
+    // This will activate the closest `error.js` Error Boundary
+    throw new Error("Failed to fetch data");
+  }
+
+  return res.json();
+}
+
+export default async function Page() {
+  const data = await getData();
+
+  return <main></main>;
+}
+```
+
+```jsx filename="app/page.js" switcher
+async function getData() {
+  const res = await fetch("https://api.example.com/...");
+  // The return value is *not* serialized
+  // You can return Date, Map, Set, etc.
+
+  if (!res.ok) {
+    // This will activate the closest `error.js` Error Boundary
+    throw new Error("Failed to fetch data");
+  }
+
+  return res.json();
+}
+
+export default async function Page() {
+  const data = await getData();
+
+  return <main></main>;
+}
+```
+
+> **สิ่งที่ควรรู้**:
+>
+> - Next.js มีฟังก์ชันในการทำงานที่มีประโยชน์เมื่อเรา fetching data ใน Server Components เช่น [`cookies`](/docs/app/api-reference/functions/cookies) และ [`headers`](/docs/app/api-reference/functions/headers) ซึ่งทำให้สามารถ render dynamic route ได้
+> - ใน Route handlers การทำ `fetch` requests จะไม่ถูกเก็บค่าไว้ในหน่วยความจำเนื่องจาก Router handlers ไม่ได้เป็นส่วนหนึ่งของ Component tree
+> - การใช้ `async`/`await` ใน Server Component แบบ TypeScript จะสามารถใช้ได้ใน TypeScript `5.1.3` หรือสูงกว่า และ `@types/react` `18.2.8` หรือสูงกว่า
+
+### Caching Data
+
+การทำ Caching เพื่อเก็บข้อมูล ทำให้เราไม่ต้องดึงข้อมูลใหม่จากแหล่งข้อมูลในทุกครั้งที่มีคำขอเข้ามา
+
+ค่าเริ่มต้นของ Next.js จะทำการ caches เก็บข้อมูลโดยอัตโนมัติ เมื่อมีการ `fetch` ใน [Data Cache](/docs/app/building-your-application/caching#data-cache) บน server นั่นคือเราสามารถดึงข้อมูลขณะ build time หรือ request time เพื่อเก็บไว้ใน cached และนำข้อมูลนั้นมาใช้ซ้ำเมื่อมีการ request เข้ามา
+
+```js
+// 'force-cache' is the default, and can be omitted
+fetch("https://...", { cache: "force-cache" });
+```
+
+`fetch` requests ที่ใช้ method `POST` ก็จะถูกเก็บไว้โดยอัตโนมัติด้วยเช่นกัน ยกเว้นว่ามันอยู่ใน [Route Handler](/docs/app/building-your-application/routing/route-handlers) ที่ใช้ method `POST` จะไม่ถูกเก็บแคชเก็บไว้
+
+> **What is the Data Cache?**
+>
+> The Data Cache is a persistent [HTTP cache](https://developer.mozilla.org/docs/Web/HTTP/Caching) ขนาดของ cache สามารถปรับขนาดได้อัตโนมัติ และสามารถ [shared ให้ส่วนต่างๆได้](https://vercel.com/docs/infrastructure/data-cache) ขึ้นอยู่กับแต่ละ platform
+>
+> เรียนรู้เพิ่มเติมได้ที่ [Data Cache](/docs/app/building-your-application/caching#data-cache).
+
+### Revalidating Data
+
+Revalidation คือกระบวนการ update ข้อมูล โดยจะล้างข้อมูลใน Cache และทำการดึงข้อมูลล่าสุดเข้ามาใหม่ (re-fetching) การทำแบบนี้มีประโยชน์เมื่อข้อมูลของเรามีการเปลี่ยนแปลงและเราต้องการให้แสดงข้อมูลที่อัพเดทสุดท้ายออกมา
+
+การทำ revalidated มีอยู่ 2 แนวทาง คือ
+
+- **Time-based revalidation**: จะทำการตรวจสอบข้อมูลตามช่วงเวลาที่กำหนดไว้ เหมาะสำหรับข้อมูลที่มีการเปลี่ยนแปลงน้อย
+- **On-demand revalidation**: อยู่บนพื้นฐานการตรวจสอบข้อมูลแบบ Manually จะมีการตรวจสอบข้อมูลใหม่เมื่อมีเหตุการณ์ที่กำหนดไว้เกิดขึ้น เช่น การส่งฟอร์ม การทำ validation แบบ On-demand นี้ เราสามารถทำการ revalidate กลุ่มของข้อมูลที่เกี่ยวข้องกับ tag-based หรือ path-based นั้นๆได้ในครั้งเดียวกัน เหมาะสำหรับข้อมูลที่มีความต้องการให้แสดงทันทีหลังจากมีเหตุการณ์ที่กำหนดเกิดขึ้น เช่น การอัพเดทเนื้อหาจากระบบ CMS
+
+#### Time-based Revalidation
+
+เราสามารถกำหนดช่วงเวลาในการทำ revalidate ได้โดยใช้ `next.revalidate` ซึ่งเป็นตัวเลือกหนึ่งในการทำ `fetch` โดยมีหน่วยเวลาเป็นวินาที
+
+```js
+fetch("https://...", { next: { revalidate: 3600 } });
+```
+
+หากเราต้องการทำ revalidate ของ `fetch` requests ทั้งหมดใน route segment เราสามารถใช้ [Segment Config Options](/docs/app/api-reference/file-conventions/route-segment-config) ได้
+
+```jsx filename="layout.js | page.js"
+export const revalidate = 3600; // revalidate at most every hour
+```
+
+ถ้าเราต้องการทำ fetch requests หลายๆอันใน statically rendered route และแต่ละอันมีความถี่ในการตรวจสอบข้อมูลต่างกัน เราจะใช้ช่วงเวลาที่น้อยที่สุดเป็นเวลาที่ใช้กำหนดการ request สำหรับ request ทั้งหมด แต่สำหรับ dynamic routes เราจะกำหนดให้การ `fetch` request แต่ละอันแยกออกจากกัน
+
+เรียนรู้ข้อมูลเพิ่มเติมได้ที่ [time-based revalidation](/docs/app/building-your-application/caching#time-based-revalidation).
+
+#### On-demand Revalidation
+
+เราสามารถทำ revalidated on-demand ด้วย path ([`revalidatePath`](/docs/app/api-reference/functions/revalidatePath)) หรือด้วย cache tag ([`revalidateTag`](/docs/app/api-reference/functions/revalidateTag)) ใน [Server Action](/docs/app/building-your-application/data-fetching/server-actions-and-mutations) or [Route Handler](/docs/app/building-your-application/routing/route-handlers) ได้ ดังนี้
+
+ใน Next.js มีระบบ cache tagging สำหรับทำ invalidating `fetch` requests ข้าม routes ได้
+
+1. เมื่อเราใช้ `fetch` เรามีตัวเลือกสำหรับการทำ tag cache entries จำนวน 1 tag หรือมากกว่า
+2. หลังจากนั้นเราสามารถเรียกใช้ `revalidateTag` เพื่อดึงข้อมูลทั้งหมดที่เกี่ยวข้องมาให้ update ใหม่อีกครั้ง
+
+ตัวอย่างโค้ดข้างล่าง เราจะใช้ `fetch` request เพื่อดึงข้อมูลของ tag ที่ชื่อว่า `collection`
+
+```tsx filename="app/page.tsx" switcher
+export default async function Page() {
+  const res = await fetch("https://...", { next: { tags: ["collection"] } });
+  const data = await res.json();
+  // ...
+}
+```
+
+```jsx filename="app/page.js" switcher
+export default async function Page() {
+  const res = await fetch("https://...", { next: { tags: ["collection"] } });
+  const data = await res.json();
+  // ...
+}
+```
+
+เราสามารถ revalidate ข้อมูลของ tag `collection` ของการ `fetch` ด้วยการใช้ `revalidateTag` ใน Server Action:
+
+```ts filename="app/actions.ts" switcher
+"use server";
+
+import { revalidateTag } from "next/cache";
+
+export default async function action() {
+  revalidateTag("collection");
+}
+```
+
+```js filename="app/actions.js" switcher
+"use server";
+
+import { revalidateTag } from "next/cache";
+
+export default async function action() {
+  revalidateTag("collection");
+}
+```
+
+เรียนรู้เพิ่มเติมเกี่ยวกับ [on-demand revalidation](/docs/app/building-your-application/caching#on-demand-revalidation).
+
+#### Error handling and revalidation
+
+ถ้าเกิดข้อผิดพลาดขึ้นระหว่างการ validate ข้อมูล ระบบจะนำข้อมูลล่าสุดที่เก็บไว้ใน cache ก่อนที่จะเกิด error มาให้ใช้ และเมื่อมีการทำ validation อีกครั้ง ก็จะทำการดึงข้อมูลใหม่
+
+### Opting out of Data Caching
+
+หากเกิดเหตุการณ์ในกรณีต่อไปนี้ข้อมูลที่เกิดจากการทำ `fetch` requests จะไม่ถูกเก็บไว้ใน cached :
+
+- ตั้งค่าเป็น `cache: 'no-store'` สำหรัรบการทำ `fetch` requests
+- ตั้งค่าเป็น `revalidate: 0` เมื่อทำการ `fetch` requests แต่ละรอบ
+- ทำ `fetch` request ใน Router Handler เมื่อใช้ `POST` method
+- ทำ `fetch` request หลังจากใช้ `headers` or `cookies`
+- ตั้งค่าเป็น `const dynamic = 'force-dynamic'` ใน route segment
+- ค่าเริ่มต้นของ `fetchCache` route segment ถูกตั้งค่าให้ไม่มีการเก็บ cache
+- การทำ `fetch` request ที่ใช้ `Authorization` หรือ `Cookie` headers จะไม่มีการทำ cache ใน component tree
+
+#### Individual `fetch` Requests
+
+หากเราไม่ต้องการให้เก็บ cache ในการ `fetch` แต่ละครั้ง เราสามารถตั้งค่า `cache` ใน `fetch` ให้เป็น `'no-store'` การทำแบบนี้จะเป็นการดึงข้อมูลแบบ dynamic
+
+```js filename="layout.js | page.js"
+fetch("https://...", { cache: "no-store" });
+```
+
+สามารถดูตัวเลื่อกที่มีไว้สำหรับตั้งค่า `cache` ใน [`fetch` API reference](/docs/app/api-reference/functions/fetch).
+
+#### Multiple `fetch` Requests
+
+ถ้าเราต้องการทำ `fetch` requests หลายๆอันใน route segment (เช่น ใน Layout or Page) เราสามาตั้งค่าการทำงานของ cache ในการดึงข้อมูลทั้งหมดที่มีอยู่ใน segment โดยใช้ [Segment Config Options](/docs/app/api-reference/file-conventions/route-segment-config).
+
+แต่เราก็แนะนำให้ตั้งค่าที่ต้องการของ `fetch` request แต่ละอัน เพื่อให้สามารถควบคุมได้ดีมากขึ้น
+
+## Fetching data on the Server with third-party libraries
+
+ในกรณีที่คุณใช้ไลบรารีจากภายนอกที่ไม่รองรับการทำงานของฟังก์ชัน fetch (ตัวอย่างเช่นฐานข้อมูล, CMS, หรือ ORM client) คุณสามารถกำหนดการทำงานของแคชและการ revalidating ของ request เหล่านั้นได้ โดยใช้ [Route Segment Config Option](/docs/app/api-reference/file-conventions/route-segment-config) และฟังก์ชัน cache ของ React
+
+การที่ข้อมูลจะถูกแคชหรือไม่นั้น ขึ้นอยู่กับว่า route segment ของเราเป็นแบบ [statically หรือ dynamically rendered](/docs/app/building-your-application/rendering/server-components#server-rendering-strategies)
+หากเป็นแบบ static (ซึ่งเป็นค่าเริ่มต้น) ข้อมูลจะถูกเก็บไว้โดย cache และ ทำ validate ในส่วนของ route segment นั้น แต่ ถ้าหากว่าเป็นแบบ dynamic ข้อมูลจะไม่ถูกทำ cache เก็บไว้ และจะทำการดึงข้อมูลใหม่ทุกครั้งที่มีการ request และ render segment นั้น
+
+คุณสามารถทดลองใช้ฟังก์ชัน [`unstable_cache` API](/docs/app/api-reference/functions/unstable_cache) ซึ่งอยู่ระหว่างการทดลองได้
+
+### Example
+
+ตัวอย่างการใช้งาน
+
+ในตัวอย่างข้างล่าง:
+
+- ฟังก์ชัน `cache` ใน React จะถูกใช้เพื่อทำ [memoize](/docs/app/building-your-application/caching#request-memoization) ให้กับข้อมูลที่ดึงมา
+- เราจะตั้งค่า `revalidate` ให้เท่ากับ `3600` ใน Layout และ Page segments หมายความว่า ข้อมุลจะถูก cache เก็บไว้ และ ทำการ revalidation ทุกหนึ่งชั่วโมง
+
+```ts filename="app/utils.ts" switcher
+import { cache } from "react";
+
+export const getItem = cache(async (id: string) => {
+  const item = await db.item.findUnique({ id });
+  return item;
+});
+```
+
+```js filename="app/utils.js" switcher
+import { cache } from "react";
+
+export const getItem = cache(async (id) => {
+  const item = await db.item.findUnique({ id });
+  return item;
+});
+```
+
+Although the `getItem` function is called twice, only one query will be made to the database.
+
+```tsx filename="app/item/[id]/layout.tsx" switcher
+import { getItem } from "@/utils/get-item";
+
+export const revalidate = 3600; // revalidate the data at most every hour
+
+export default async function Layout({
+  params: { id },
+}: {
+  params: { id: string };
+}) {
+  const item = await getItem(id);
+  // ...
+}
+```
+
+```jsx filename="app/item/[id]/layout.js" switcher
+import { getItem } from "@/utils/get-item";
+
+export const revalidate = 3600; // revalidate the data at most every hour
+
+export default async function Layout({ params: { id } }) {
+  const item = await getItem(id);
+  // ...
+}
+```
+
+```tsx filename="app/item/[id]/page.tsx" switcher
+import { getItem } from "@/utils/get-item";
+
+export const revalidate = 3600; // revalidate the data at most every hour
+
+export default async function Page({
+  params: { id },
+}: {
+  params: { id: string };
+}) {
+  const item = await getItem(id);
+  // ...
+}
+```
+
+```jsx filename="app/item/[id]/page.js" switcher
+import { getItem } from "@/utils/get-item";
+
+export const revalidate = 3600; // revalidate the data at most every hour
+
+export default async function Page({ params: { id } }) {
+  const item = await getItem(id);
+  // ...
+}
+```
+
+## Fetching Data on the Client with Route Handlers
+
+If you need to fetch data in a client component, you can call a [Route Handler](/docs/app/building-your-application/routing/route-handlers) from the client. Route Handlers execute on the server and return the data to the client. This is useful when you don't want to expose sensitive information to the client, such as API tokens.
+
+See the [Route Handler](/docs/app/building-your-application/routing/route-handlers) documentation for examples.
+
+> **Server Components and Route Handlers**
+>
+> Since Server Components render on the server, you don't need to call a Route Handler from a Server Component to fetch data. Instead, you can fetch the data directly inside the Server Component.
+
+## Fetching Data on the Client with third-party libraries
+
+You can also fetch data on the client using a third-party library such as [SWR](https://swr.vercel.app/) or [TanStack Query](https://tanstack.com/query/latest). These libraries provide their own APIs for memoizing requests, caching, revalidating, and mutating data.
+
+> **Future APIs**:
+>
+> `use` is a React function that **accepts and handles a promise** returned by a function. Wrapping `fetch` in `use` is currently **not** recommended in Client Components and may trigger multiple re-renders. Learn more about `use` in the [React docs](https://react.dev/reference/react/use).
