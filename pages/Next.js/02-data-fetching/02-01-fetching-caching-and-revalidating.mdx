@@ -20,7 +20,7 @@ Data fetching หรือการดึงข้อมูล เป็นส�
 
 Next.js เราสามารถกำหนดการทำงานของ [`fetch` Web API](https://developer.mozilla.org/docs/Web/API/Fetch_API) เพื่อกำหนดวิธีการเก็บข้อมูลใน [caching](#caching-data) และ [revalidating](#revalidating-data) สำหรับการทำ fetch request แต่ละครั้งบน server แต่ใน React เมื่อ `fetch` ได้ทำการ request จะทำการเก็บข้อมูลโดยอัตโนมัติ [memoize](/docs/app/building-your-application/data-fetching/patterns#fetching-data-where-its-needed) ระหว่างการ render โครงสร้างของ React component
 
-เราสามารถใช้ `fetch` ร่วมกับ `async`/`await` ใน Server Components ใน [Route Handlers](/docs/app/building-your-application/routing/route-handlers) และใน [Server Actions](/docs/app/building-your-application/data-fetching/server-actions-and-mutations) ได้
+เราสามารถใช้ `fetch` ร่วมกับ `async`/`await` ใน Server Components ใน [Route Handlers](/Next.js/01-Routing/01-11-Route-Handlers) และใน [Server Actions](/docs/app/building-your-application/data-fetching/server-actions-and-mutations) ได้
 
 ตัวอย่าง เช่น
 
@@ -83,7 +83,7 @@ export default async function Page() {
 fetch("https://...", { cache: "force-cache" });
 ```
 
-`fetch` requests ที่ใช้ method `POST` ก็จะถูกเก็บไว้โดยอัตโนมัติด้วยเช่นกัน ยกเว้นว่ามันอยู่ใน [Route Handler](/docs/app/building-your-application/routing/route-handlers) ที่ใช้ method `POST` จะไม่ถูกเก็บแคชเก็บไว้
+`fetch` requests ที่ใช้ method `POST` ก็จะถูกเก็บไว้โดยอัตโนมัติด้วยเช่นกัน ยกเว้นว่ามันอยู่ใน [Route Handler](/Next.js/01-Routing/01-11-Route-Handlerss) ที่ใช้ method `POST` จะไม่ถูกเก็บแคชเก็บไว้
 
 > **What is the Data Cache?**
 >
@@ -120,7 +120,7 @@ export const revalidate = 3600; // revalidate at most every hour
 
 #### On-demand Revalidation
 
-เราสามารถทำ revalidated on-demand ด้วย path ([`revalidatePath`](/docs/app/api-reference/functions/revalidatePath)) หรือด้วย cache tag ([`revalidateTag`](/docs/app/api-reference/functions/revalidateTag)) ใน [Server Action](/docs/app/building-your-application/data-fetching/server-actions-and-mutations) or [Route Handler](/docs/app/building-your-application/routing/route-handlers) ได้ ดังนี้
+เราสามารถทำ revalidated on-demand ด้วย path ([`revalidatePath`](/docs/app/api-reference/functions/revalidatePath)) หรือด้วย cache tag ([`revalidateTag`](/docs/app/api-reference/functions/revalidateTag)) ใน [Server Action](/docs/app/building-your-application/data-fetching/server-actions-and-mutations) or [Route Handler](/Next.js/01-Routing/01-11-Route-Handlers) ได้ ดังนี้
 
 ใน Next.js มีระบบ cache tagging สำหรับทำ invalidating `fetch` requests ข้าม routes ได้
 
@@ -237,7 +237,7 @@ export const getItem = cache(async (id) => {
 });
 ```
 
-Although the `getItem` function is called twice, only one query will be made to the database.
+ถึงแม้ว่าฟังก์ชัน `getItem` จะถูกเรียก 2 ครั้ง แต่จะมีการดึงข้อมูลจากฐานข้อมูลเพียงครั้งเดียวเท่านั้น
 
 ```tsx filename="app/item/[id]/layout.tsx" switcher
 import { getItem } from "@/utils/get-item";
@@ -293,18 +293,25 @@ export default async function Page({ params: { id } }) {
 
 ## Fetching Data on the Client with Route Handlers
 
-If you need to fetch data in a client component, you can call a [Route Handler](/docs/app/building-your-application/routing/route-handlers) from the client. Route Handlers execute on the server and return the data to the client. This is useful when you don't want to expose sensitive information to the client, such as API tokens.
+การดึงข้อมูลบน client ด้วย Route Handlers
 
-See the [Route Handler](/docs/app/building-your-application/routing/route-handlers) documentation for examples.
+ถ้าคุณต้องการดึงข้อมูลใน component บน client คุณสามารถเรียกใช้
+[Route Handler](route-handlers) จาก client ได้ ตัว Route Handlers จะทำงานในฝั่ง server และส่งข้อมูลคืนไปให้ฝั่งทาง client ประโยชน์ของวิธีนี้คือ จะไม่เปิดเผยข้อมูลสำคัญ เช่น API tokens ให้คนอื่นในฝั่ง client เห็น
+
+ดูข้อมูลเพิ่มเติมได้ที่ [Route Handler](/Next.js/01-Routing/01-11-Route-Handlers)
 
 > **Server Components and Route Handlers**
 >
-> Since Server Components render on the server, you don't need to call a Route Handler from a Server Component to fetch data. Instead, you can fetch the data directly inside the Server Component.
+> หาก Server Components ทำการ render บน server คุณไม่จำเป็นต้องเรียก Route Handler จาก Server Component เพื่อดึงข้อมูล เพราะคุณสามารถดึงข้อมูลโดยตรงภายใน Server Component ได้เลย
 
 ## Fetching Data on the Client with third-party libraries
 
-You can also fetch data on the client using a third-party library such as [SWR](https://swr.vercel.app/) or [TanStack Query](https://tanstack.com/query/latest). These libraries provide their own APIs for memoizing requests, caching, revalidating, and mutating data.
+การดึงข้อมูลบน client ด้วย libraries ภายนอก
+
+เราสามารถดึงข้อมูลบน client ด้วย libraries ภายนอกได้ เช่น [SWR](https://swr.vercel.app/) หรือ [TanStack Query](https://tanstack.com/query/latest) libraries เหล่านี้จะมี APIs ของตัวเองสำหรับการทำ memoizing requests / caching / revalidating และ mutating data
 
 > **Future APIs**:
 >
-> `use` is a React function that **accepts and handles a promise** returned by a function. Wrapping `fetch` in `use` is currently **not** recommended in Client Components and may trigger multiple re-renders. Learn more about `use` in the [React docs](https://react.dev/reference/react/use).
+> `use` เป็นฟังก์ชันหนึ่งของ React **ทำหน้าที่รับและจัดการกับ promise** ที่ส่งข้อมูลกลับมาจากฟังก์ชัน ไม่แนะนำให้ใช้ใช้ `use` ครอบ `fetch` ใน Client Components เพราะอาจจะทำให้เกิดการ render ซ้ำซ้อนหลายครั้ง
+
+> สามารถเรียนรู้เพิ่มเติมการใช้ `use` ได้ใน [React docs](https://react.dev/reference/react/use).
