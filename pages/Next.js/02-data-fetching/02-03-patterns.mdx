@@ -125,15 +125,14 @@ export default async function Page({ params: { username } }) {
 
 > **Blocking Data Requests:**
 >
-> An alternative approach to prevent waterfalls is to fetch data globally, at the root of your application, but this will block rendering for all route segments beneath it until the data has finished loading. This can be described as "all or nothing" data fetching. Either you have the entire data for your page or application, or none.
->
-> Any fetch requests with `await` will block rendering and data fetching for the entire tree beneath it, unless they are wrapped in a `<Suspense>` boundary or `loading.js` is used. Another alternative is to use [parallel data fetching](#parallel-data-fetching) or the [preload pattern](#preloading-data).
+> - Blocking data request เป็นวิธีหนึ่งในการป้องกันการดึงข้อมูลแบบ waterfalls ที่ root ของ application แต่จะปิดกั้นการ render ของ route segments ทั้งหมดจนกระทั่ง load ข้อมูลเสร็จ เรียกลักษณะการทำงานแบบนี้ว่าการดึงข้อมูลแบบ "all or nothing" นั่นคือ การทำงานนี้จะเกิดขึ้นไม่ว่าคุณจะมีข้อมูลสำหรับหน้าแอปพลิเคชันหรือไม่มีข้อมูลก็ตาม
+> - การทำ fetch requests ด้วย `await` จะปิดกั้นการ render และการดึงข้อมูลที่อยู่ภายใต้การ request นี้ แต่หากมีการใช้ `<Suspense>` หรือ `loading.js` จะทำให้สามารถดึงข้อมูลแบบ [parallel data fetching](#parallel-data-fetching) หรือ [preload pattern](#preloading-data) ได้
 
 ### Parallel Data Fetching
 
-To fetch data in parallel, you can eagerly initiate requests by defining them outside the components that use the data, then calling them from inside the component. This saves time by initiating both requests in parallel, however, the user won't see the rendered result until both promises are resolved.
+เพื่อให้เราสามารถดึงข้อมูลได้พร้อมๆกัน เราสามารถกำหนดการดึงข้อมูลนี้ให้อยู่นอก component ที่เราต้องการใช้ข้อมูล จากนั้นจึงเรียกใช้จากด้านใน component ที่เราจะใช้ข้อมูลนั้น การทำแบบนี้จะทำให้เราสามารถประหยัดเวลาได้ user จะยังไม่สามารถมองเห็นข้อมูลได้จนกว่าข้อมูลทั้งหมดจะทำงานเสร็จ
 
-In the example below, the `getArtist` and `getArtistAlbums` functions are defined outside the `Page` component, then called inside the component, and we wait for both promises to resolve:
+ตัวอย่างโค้ดข้างล่างนี้ ฟังก์ชัน `getArtist` และ `getArtistAlbums` ถูกกำหนดไว้นอก component `Page` เมื่อเราเรียกใช้จากภายใน component เราจะต้องรอให้ทั้งสองฟังก์ชันทำงานเสร็จก่อน
 
 ```tsx filename="app/artist/[username]/page.tsx" switcher
 import Albums from "./albums";
@@ -199,11 +198,11 @@ export default async function Page({ params: { username } }) {
 }
 ```
 
-To improve the user experience, you can add a [Suspense Boundary](/docs/app/building-your-application/routing/loading-ui-and-streaming) to break up the rendering work and show part of the result as soon as possible.
+เพื่อเป็นการสร้างประสบการ์การใช้งานที่ดีให้กับผู้ใช้งาน เราสามารถเพิ่มขอบเขตการรอ โดยเพิ่ม [Suspense Boundary](/docs/app/building-your-application/routing/loading-ui-and-streaming) เพื่อแบ่งการ reander เป็นส่วนๆ และจะทำให้เราสามารถแสดงผลได้เร็วขึ้น
 
 ## Preloading Data
 
-Another way to prevent waterfalls is to use the preload pattern. You can optionally create a `preload` function to further optimize parallel data fetching. With this approach, you don't have to pass promises down as props. The `preload` function can also have any name as it's a pattern, not an API.
+อีกวิธีหนึ่งในการป้องกันการทำงานแบบ waterfalls คือ การใช้ preload pattern เราสามารถสร้างฟังก์ชัน `preload` ขึ้นมา เพื่อทำให้การดึงข้อมูลเป็นแบบ parallel data fetching ด้วยการทำแบบนี้ เราไม่ต้องใช้ promises เพราะเราจะตั้งชื่อในการใช้หังก์ชัน `preload` ให้เป็นชื่อใดๆ ก็ได้เพราะว่ามันไม่ใช่ API.
 
 ```tsx filename="components/Item.tsx" switcher
 import { getItem } from "@/utils/get-item";
@@ -265,7 +264,7 @@ export default async function Page({ params: { id } }) {
 
 ### Using React `cache`, `server-only`, and the Preload Pattern
 
-You can combine the `cache` function, the `preload` pattern, and the `server-only` package to create a data fetching utility that can be used throughout your app.
+เราสามารถรวมฟังก์ชัน `cache` `preload` pattern และ `server-only` package ในการสร้างเครื่องมือช่วยในการดึงข้อมูลสำหรับใช้ในแอฟพลิเคชันของเราได้
 
 ```ts filename="utils/get-item.ts" switcher
 import { cache } from "react";
@@ -293,19 +292,21 @@ export const getItem = cache(async (id) => {
 });
 ```
 
-With this approach, you can eagerly fetch data, cache responses, and guarantee that this data fetching [only happens on the server](/docs/app/building-your-application/rendering/composition-patterns#keeping-server-only-code-out-of-the-client-environment).
+ด้วยการทำงานแบบนี้ เราสามารถดึงข้อมูลก่อน เกิดการทำงานของ cache และแน่นอน การดึงข้อมูลนี้[เกิดขึ้นเฉพาะในฝั่ง server](/docs/app/building-your-application/rendering/composition-patterns#keeping-server-only-code-out-of-the-client-environment).
 
-The `utils/get-item` exports can be used by Layouts, Pages, or other components to give them control over when an item's data is fetched.
+ไฟล์ที่อยู่ในโฟลเดอร์ `utils/get-item` สามารถนำมาใช้ได้โดยการใช้ Layouts, Pages, หรือ components อื่นๆ เพื่อกำหนดการทำงานเมื่อมีการสั่งให้ดึงข้อมูล
 
-> **Good to know:**
+> **สิ่งที่ควรรู้:**
 >
-> - We recommend using the [`server-only` package](/docs/app/building-your-application/rendering/composition-patterns#keeping-server-only-code-out-of-the-client-environment) to make sure server data fetching functions are never used on the client.
+> - เราแนะนำให้ใช้ [`server-only` package](/docs/app/building-your-application/rendering/composition-patterns#keeping-server-only-code-out-of-the-client-environment) เพื่อให้แน่ใจว่าเราไม่ได้ดึงข้อมูลในฝั่ง client
 
 ## Preventing sensitive data from being exposed to the client
 
-We recommend using React's taint APIs, [`taintObjectReference`](https://react.dev/reference/react/experimental_taintObjectReference) and [`taintUniqueValue`](https://react.dev/reference/react/experimental_taintUniqueValue), to prevent whole object instances or sensitive values from being passed to the client.
+การป้องกันการเปิดเผยข้อมูลที่ sensitive ออกสู่ฝั่ง client
 
-To enable tainting in your application, set the Next.js Config `experimental.taint` option to `true`:
+เราแนะนำให้ใช้ React's taint APIs, [`taintObjectReference`](https://react.dev/reference/react/experimental_taintObjectReference) and [`taintUniqueValue`](https://react.dev/reference/react/experimental_taintUniqueValue) เพื่อป้องกันการเข้าถึง object ทั้งหมด หรือ ข้อมูลที่ sensitive จากภายนอก เมื่อเราส่งข้อมูลไปให้ฝั่ง client
+
+เราสามารถตั้งค่าใน Next.js Config `experimental.taint` ให้เป็นค่า `true` เพื่อเปิดให้ tainting ทำงาน:
 
 ```js filename="next.config.js"
 module.exports = {
@@ -315,7 +316,7 @@ module.exports = {
 };
 ```
 
-Then pass the object or value you want to taint to the `experimental_taintObjectReference` or `experimental_taintUniqueValue` functions:
+หลังจากนั้นเราจะส่ง object หรือ value ที่เราต้องการทำ taint ให้กับฟังก์ชัน `experimental_taintObjectReference` หรือ `experimental_taintUniqueValue` :
 
 ```ts filename="app/utils.ts" switcher
 import { queryDataFromDB } from "./api";
@@ -389,4 +390,4 @@ export async function Page() {
 }
 ```
 
-Learn more about [Security and Server Actions](https://nextjs.org/blog/security-nextjs-server-components-actions).
+เรียนรู้เพิ่มเติมได้ที่ [Security and Server Actions](https://nextjs.org/blog/security-nextjs-server-components-actions).

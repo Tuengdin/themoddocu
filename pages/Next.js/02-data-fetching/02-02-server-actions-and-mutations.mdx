@@ -5,17 +5,17 @@ description: Learn how to handle form submissions and data mutations with Next.j
 
 # Server Actions and Mutations
 
-Server Actions are **asynchronous functions** that are executed on the server. They can be used in Server and Client Components to handle form submissions and data mutations in Next.js applications.
+Server Actions คือ **asynchronous functions** ที่ทำงานบนฝั่ง server มันสามารถถูกใช้ได้ทั้งใน Server และ Client Components เพื่อจัดการการทำงานของ form submissions และ data mutations ใน Next.js
 
-> **🎥 Watch:** Learn more about forms and mutations with Server Actions → [YouTube (10 minutes)](https://youtu.be/dDpZfOQBMaU?si=cJZHlUu_jFhCzHUg).
+> **🎥 Watch:** เรียนรู้เพิ่มเติมเกี่ยวกับการทำงานของ forms และ mutations ด้วย Server Actions → [YouTube (10 minutes)](https://youtu.be/dDpZfOQBMaU?si=cJZHlUu_jFhCzHUg).
 
 ## Convention
 
-A Server Action can be defined with the React [`"use server"`](https://react.dev/reference/react/use-server) directive. You can place the directive at the top of an `async` function to mark the function as a Server Action, or at the top of a separate file to mark all exports of that file as Server Actions.
+เราสามารถกำหนด Server Action ใน React ด้วยการระบุ [`"use server"`](https://react.dev/reference/react/use-server) เราสามารถวาง `"use server"` ก่อนฟังก์ชัน `async` เพื่อกำหนดให้เป็นฟังก์ชันทำงานแบบ Server Action หรือ วาง `"use server"` ไว้บนสุดของไฟล์ เพื่อกำหนดให้การ export ของไฟล์นั้นทำงานแบบ Server Actions.
 
 ### Server Components
 
-Server Components can use the inline function level or module level `"use server"` directive. To inline a Server Action, add `"use server"` to the top of the function body:
+เราสามารถใช้ Server Components แบบ inline function level หรือ module level ได้โดยการใส่คำว่า `"use server"` ไว้ที่บรรทัดแรกของฟังก์ชันนั้น ดูตามตัวอย่างข้างล่าง :
 
 ```tsx filename="app/page.tsx" switcher
 // Server Component
@@ -51,9 +51,9 @@ export default function Page() {
 
 ### Client Components
 
-Client Components can only import actions that use the module-level `"use server"` directive.
+Client Components สามารถนำเข้า actions ที่ระบุในระดับโมดูลว่าเป็น `"use server"`
 
-To call a Server Action in a Client Component, create a new file and add the `"use server"` directive at the top of it. All functions within the file will be marked as Server Actions that can be reused in both Client and Server Components:
+ในการเรียกใช้ Server Action ใน Client Component จะต้องสร้างไฟล์ใหม่และใส่คำว่า `"use server"` ที่บรรทัดแรกของไฟล์ การทำแบบนี้จะทำให้ฟังก์ชันทั้งหมดในไฟล์นั้นถูกระบุให้ทำงานแบบ Server Actions ซึ่งการทำแบบนี้จะทำให้เราสามารถเรียกใช้ฟังก์ชันเหล่านี้ได้ทั้งในส่วนของ Client และ Server Components:
 
 ```tsx filename="app/actions.ts" switcher
 "use server";
@@ -91,7 +91,7 @@ export function Button() {
 }
 ```
 
-You can also pass a Server Action to a Client Component as a prop:
+เราสามารถส่ง Server Action ไปให้ Client Component ได้โดยใช้ prop:
 
 ```jsx
 <ClientComponent updateItem={updateItem} />
@@ -107,16 +107,16 @@ export default function ClientComponent({ updateItem }) {
 
 ## Behavior
 
-- Server actions can be invoked using the `action` attribute in a [`<form>` element](#forms):
-  - Server Components support progressive enhancement by default, meaning the form will be submitted even if JavaScript hasn't loaded yet or is disabled.
-  - In Client Components, forms invoking Server Actions will queue submissions if JavaScript isn't loaded yet, prioritizing client hydration.
-  - After hydration, the browser does not refresh on form submission.
-- Server Actions are not limited to `<form>` and can be invoked from event handlers, `useEffect`, third-party libraries, and other form elements like `<button>`.
-- Server Actions integrate with the Next.js [caching and revalidation](/docs/app/building-your-application/caching) architecture. When an action is invoked, Next.js can return both the updated UI and new data in a single server roundtrip.
-- Behind the scenes, actions use the `POST` method, and only this HTTP method can invoke them.
-- The arguments and return value of Server Actions must be serializable by React. See the React docs for a list of [serializable arguments and values](https://react.dev/reference/react/use-server#serializable-parameters-and-return-values).
-- Server Actions are functions. This means they can be reused anywhere in your application.
-- Server Actions inherit the [runtime](/docs/app/building-your-application/rendering/edge-and-nodejs-runtimes) from the page or layout they are used on.
+- การทำงานของ Server actions สามารถถูกเรียกใช้ได้โดยใช้ attribue `action` ใน [`<form>` element](#forms):
+  - ค่าเริ่มต้นของ Server Components รองรับการทำงานแบบ progressive enhancement หมายความว่า form จะถูกส่งข้อมูลไปแม้ว่า JavaScript จะยังไม่ถูกโหลดเข้าไปหรือมีการปิดใช้งาน JavaScript ก็ตาม
+  - ใน Client Components นั้น forms จะถูก Server Actions จัดลำดับการเรียก แม้ว่ายังไม่ได้ JavaScript ก็ตาม prioritizing client hydration.
+  - หลังจากกระบวนการ hydration ตัว browse จะไม่ทำการ refresh เมื่อมีการส่งแบบฟอร์ม
+- Server Actions ไม่ได้จำกัดเฉพาะการทำงานกับ `<form>` เท่านั้น แต่สามารถใช้กับ `useEffect` หรือ ไลบรารีภายนอกและ elements อื่นๆ อย่างเช่น `<button>`ด้วย
+- Server Actions จะทำงานร่วมกับ [caching and revalidation](/docs/app/building-your-application/caching) ของ Next.js เมื่อถูกเรียกใช้ให้ทำงานมันจะสามารถคืนค่า UI ที่อัพเดทแล้ว และ ข้อมูลใหม่ ในครั้งเดียวกัน
+- เบื้องหลังการทำงานนี้ คือการใช้ `POST` method ทำงาน และวิธีนี้ใช้ได้กับการเรียกใช้แบบ HTTP method เท่านั้น
+- arguments และค่า return ของ Server Actions จะเป็นไปตามลำดับการทำงานของ React ดูข้อมูลเพิ่มเติมได้ที่ [serializable arguments and values](https://react.dev/reference/react/use-server#serializable-parameters-and-return-values).
+- Server Actions เป็นฟังก์ชัน หมายความว่า เราสามารถนำไปใช้ซ้ำได้ในส่วนต่างๆของแอปพลิเคชัน
+- Server Actions จะได้รับการสืบทอดใน [runtime](/docs/app/building-your-application/rendering/edge-and-nodejs-runtimes) จาก page หรือ layout ที่ถูกนำไปใช้
 
 ## Examples
 
