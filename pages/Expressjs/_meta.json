@@ -6,6 +6,6 @@
     "type": "separator"
   },
   "getting-started": {
-    "title": "การสร้างแอปพลิเคชั่นด้วย Express.js"
+    "title": "การสร้าง server ด้วย Express.js"
   }
 }
