@@ -1,0 +1,112 @@
+---
+title: การสร้างแอปพลิเคชั่นด้วย Express.js
+description: การสร้างแอปพลิเคชั่นด้วย Express.js
+---
+
+# การสร้างแอปพลิเคชั่นด้วย Express.js
+
+## บทนำ
+
+ในบทนี้ เป็นพื้นฐานในการเขียนแอปด้วย Express ซึ่งประกอบด้วย การจัดเตรียม environment โดย ติดตั้งโมดูลต่างๆ การสร้างแอปพลิเคชัน การเรียกใช้เว็บเซิร์ฟเวอร์ และการสื่อสารพื้นฐานกับเซิร์ฟเวอร์
+
+ความรู้ที่ใช้ในขั้นตอนนี้ คือ
+
+- การใช้งานโปรแกรม Node Package Manager พื้นฐาน
+- ความรู้พื้นฐานในการติดตั้ง dependencies และโมดูล ติดตั้งโมดูลต่างๆ
+- ความรู้พื้นฐานเกี่ยวกับวิธีการทำงานของเว็บแอปพลิเคชัน
+- ความรู้เกี่ยวกับ ES6
+
+## ขั้นตอนการทำงาน
+
+### ขั้นตอนที่ 1 สร้าง server แอปพลิเคชั่นด้วย nodejs
+
+    เพราะว่า express.js ทำงานใน nodejs เราจึงต้องติดตั้ง nodejs แอปพลิเคชั่นตามคำสั่งด้านล่างก่อน<br/><br/>
+    **คำสั่งที่ใช้งาน:**
+    ```shell
+    npm init
+    ```
+    ในการใช้คำสั่งนี้ เราจะต้องตอบคำถามที่ระบบถามเพื่อตั้งค่า project ของเรา และเราสามารถเปลี่ยนแปลงค่าหลังจากนี้ได้ในไฟล์ package.json
+
+![](/express/getting-started/npm-init.png)
+
+> **ความรู้เพิ่มเติม:**<br/>หากเราต้องการติดตั้งโดยใช้ค่าเริ่มต้นของระบบทั้งหมด เราสามารถใช้คำสั่ง `npm init -y` ได้
+
+### ขั้นตอนที่ 2 ติดตั้ง express สำหรับแอปพลิเคชั่นของเรา
+
+    **คำสั่งที่ใช้งาน:**
+    ```shell
+    npm install express
+    ```
+
+หากการติดตั้งสำเร็จจะแสดงผลคล้ายภาพนี้
+![](/express/getting-started/npm-install-express.png)
+
+### ขั้นตอนที่ 3 ตรวจสอบโครงสร้างไฟล์ของโปรเจก
+
+โครงสร้างไฟล์ในโปรเจกของเราจะมีหน้าตาคล้ายในภาพ
+![](/express/getting-started/project-structure.png)
+เราจะสร้างไฟล์ index.js (ตามค่าเริ่มต้นที่แสดงในไฟล์ `package.json` คือ `"main":"index.js"`)
+เพื่อเขียนโค้ดทั้งหมดที่ใช้งานในบทนี้
+
+ลำดับการทำงานในไฟล์ `idex.js`
+
+1. เราจะนำเข้า `express` มาทำงานในไฟล์นี้ ด้วยคำสั่ง `require`
+2. สร้างตัวแปร `app` เพื่อใช้ในการเรียกฟังก์ชัน `express()` ใน express framework มาทำงาน
+3. ตั้งค่า port เป็น 8000 สำหรับการทำงานแบบ local
+4. ใช้ callback function เพื่อรับค่าการทำงานของ sever ว่า start server สำเร็จ หรือ error
+
+นำมาเขียนเป็นโค้ดได้ ดังนี้
+
+```javascript
+const express = require('express');
+
+const app = express();
+const PORT = 3000;
+
+app.listen(PORT, (error) =>{
+	if(!error)
+		console.log("Server is Successfully Running,
+				and App is listening on port "+ PORT)
+	else
+		console.log("Error occurred, server can't start", error);
+	}
+);
+
+```
+
+### ขั้นตอนที่ 4 ทดสอบการทำงาน
+
+    เมื่อเราสร้าง server เสร็จแล้ว เราจะสั่งให้ server ทำงานด้วยคำสั่งต่อไปนี้<br/><br/>
+    **คำสั่งที่ใช้งาน:**
+
+```shell
+node index.js
+```
+
+    จะได้ผลการทำงานออกมาดังนี้
+
+![](/express/getting-started/node-index-js.png)
+
+ตอนนี้ เราสามารถสร้างและสั่งให้ `server` ทำงานได้สำเร็จแล้ว
+
+- ถ้า server ไม่ทำงาน แสดงว่าเกิด error ขึ้น ให้อ่าน error ที่แสดงขึ้นมา วิเคราะห์หาสาเหตุ และแก้ปัญหาที่เกี่ยวข้อง
+
+หลังจาก server ทำงานได้สำเร็จ หากเราเปิด browser ด้วย url (localhost:8000) มันจะแสดง `cannot GET/` เพราะว่าเรายังไม่ได้กำหนดเส้นทาง route ให้กับแอปพลิเคชั่นนี้
+![](/express/getting-started/cannotGET.png)
+
+### ขั้นตอนที่ 5 กำหนด Route
+
+`route` คือ `endpoint` หรือ ปลายทาง ที่กำหนดให้ sever เข้าไปทำงาน
+ซึ่งเราจะกำหนดไว้ในส่วนของ backend<br/>
+พูดง่าย ๆ คือ `route` เหมือนเป็นฟังก์ชันหนึ่งในการเรียกใช้ โดยจะเรียกใช้ด้วย `request` พร้อมส่งเส้นทางที่กำหนดไว้เฉพาะ และได้รับค่าที่ต้องการกลับมาเรา เรียกว่า `response`
+
+เราสามารถสร้าง `routes` สำหรับ `HTTP method` ได้ เช่น `get` `post` `put` `delete` เป็นต้น
+
+ตัวอย่าง syntax ของ routes จะมีรูปแบบ ดังนี้<br/>
+**syntax:**
+
+```javascript
+app.anyMethod(path, function)
+```
+
+Refernce: [geeksforgeeks](https://www.geeksforgeeks.org/steps-to-create-an-express-js-application/)
